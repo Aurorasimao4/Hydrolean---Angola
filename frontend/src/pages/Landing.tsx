@@ -267,7 +267,9 @@ export function Landing({ onNavigate }: LandingProps) {
                                                 </div>
                                             </div>
                                             <div className="text-left sm:text-right">
-                                                <p className="text-white font-bold inline-flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-brand-accent animate-ping"></div> Irrigando Agora</p>
+                                                <p className="text-white font-bold inline-flex items-center gap-2">
+                                                    <span className="w-2 h-2 rounded-full bg-brand-accent animate-ping block"></span> Irrigando Agora
+                                                </p>
                                                 <p className="text-xs text-brand-accent">IA prevê 25min necessários</p>
                                             </div>
                                         </div>

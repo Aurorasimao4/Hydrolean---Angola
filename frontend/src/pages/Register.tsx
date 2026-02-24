@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { ArrowLeft, Droplets, Mail, Lock, User } from 'lucide-react';
 
 interface RegisterProps {
-    onNavigate: (view: 'landing' | 'login' | 'register') => void;
+    onNavigate: (view: 'landing' | 'login' | 'register' | 'dashboard') => void;
 }
 
 export function Register({ onNavigate }: RegisterProps) {
@@ -12,8 +12,10 @@ export function Register({ onNavigate }: RegisterProps) {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        // TODO: implement real registration
-        console.log('Registration attempt:', { name, email, password });
+        // Redirecting to Dashboard to simulate successful registration
+        if (name && email && password) {
+            onNavigate('dashboard');
+        }
     };
 
     return (

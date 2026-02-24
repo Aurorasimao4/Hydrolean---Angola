@@ -1,3 +1,62 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.leaflet-custom-container {
+    background-color: #E8F0E3;
+}
+
+.custom-leaflet-marker {
+    background: transparent;
+    border: none;
+}
+
+/* Make Leaflet popups match our clean glassmorphism / rounded UI style */
+.leaflet-popup.custom-leaflet-popup {
+    margin-bottom: 24px;
+}
+
+.custom-leaflet-popup .leaflet-popup-content-wrapper {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 1rem;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    padding: 0;
+    overflow: hidden;
+    border: 1px solid rgba(229, 231, 235, 0.5);
+}
+
+.custom-leaflet-popup .leaflet-popup-content {
+    margin: 16px;
+    line-height: 1.4;
+}
+
+.custom-leaflet-popup .leaflet-popup-tip-container {
+    overflow: visible;
+    margin-top: -1px;
+}
+
+.custom-leaflet-popup .leaflet-popup-tip {
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 3px 14px rgba(0, 0, 0, 0.1);
+}
+
+.leaflet-control-attribution {
+    background: rgba(255, 255, 255, 0.7) !important;
+    backdrop-filter: blur(4px);
+    border-top-left-radius: 12px;
+    padding: 4px 12px !important;
+    font-size: 10px !important;
+    color: #666 !important;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+/* Remove default blue outline on map focus */
+.leaflet-container:focus {
+    outline: none;
+}
+
+/* Push map controls down to avoid overlapping with custom header */
+.leaflet-top {
+    margin-top: 64px;
+}

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { ArrowLeft, Droplets, Mail, Lock } from 'lucide-react';
 
 interface LoginProps {
-    onNavigate: (view: 'landing' | 'login' | 'register') => void;
+    onNavigate: (view: 'landing' | 'login' | 'register' | 'dashboard') => void;
 }
 
 export function Login({ onNavigate }: LoginProps) {
@@ -11,8 +11,10 @@ export function Login({ onNavigate }: LoginProps) {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        // TODO: implement real login
-        console.log('Login attempt:', { email, password });
+        // Redirecting to Dashboard to simulate successful login
+        if (email && password) {
+            onNavigate('dashboard');
+        }
     };
 
     return (
