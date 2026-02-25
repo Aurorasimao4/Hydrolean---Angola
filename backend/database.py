@@ -1,6 +1,9 @@
 import os
+from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
+
+load_dotenv()  # Carrega o .env antes de ler DATABASE_URL
 
 # Usa PostgreSQL (Render em produção, ou a URL externa do Render em desenvolvimento)
 DATABASE_URL = os.getenv("DATABASE_URL")
