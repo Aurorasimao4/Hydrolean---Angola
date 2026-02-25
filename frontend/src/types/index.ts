@@ -1,11 +1,9 @@
-export type ZoneStatus = 'optimal' | 'irrigating' | 'tank' | 'attention' | 'active' | 'inactive';
-
-export type ZoneType = 'sensor' | 'tank' | 'pump' | 'solar' | 'storage';
+export type ZoneStatus = 'optimal' | 'irrigating' | 'tank' | 'attention';
 
 export interface Zone {
     id: number;
     name: string;
-    type: ZoneType;
+    type: 'sensor' | 'tank';
     status: ZoneStatus;
     lat: number;
     lng: number;

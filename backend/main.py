@@ -1,20 +1,20 @@
 """
 main.py — API de Recomendação de Culturas e Irrigação Inteligente
-FastAPI + NaiveBayes + Open-Meteo (Meteo) + Gemini API (NLP)
+FastAPI + NaiveBayes + Open-Meteo (Meteo) + DeepSeek (NLP)
 
 Endpoints:
   POST /predict          → Prevê a cultura ideal com base nos parâmetros do solo
-  POST /irrigar          → Recomendações de irrigação via Gemini (solo + meteo)
+  POST /irrigar          → Recomendações de irrigação via DeepSeek (solo + meteo)
   POST /analise-completa → predict + irrigar combinado
   GET  /meteo            → Previsão meteorológica para uma localização
-  GET  /culturas         → Lista todas as culturas suportadas
   GET  /health           → Health check
+  POST /chat             → Chatbot AgroIntel com contexto real da fazenda
 """
 
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import Optional, List
 import joblib
 import numpy as np
 import os
@@ -249,6 +249,32 @@ CULTURAS_PT = {
     "jute": "Juta",
     "coffee": "Café",
 }
+
+# ============================================================
+# FUNÇÃO AUXILIAR — Chamar DeepSeek
+# ============================================================
+
+async def chamar_deepseek(system_prompt: str, user_prompt: str, max_tokens: int = 2000) -> str:
+    """Chama a API do DeepSeek via OpenAI SDK de forma assíncrona."""
+    if not ai_client:
+        raise HTTPException(
+            status_code=503,
+            detail="DeepSeek não configurado. Defina DEEPSEEK_API_KEY no .env",
+        )
+    try:
+        response = await ai_client.chat.completions.create(
+            model="deepseek-chat",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
+            ],
+            temperature=0.7,
+            max_tokens=max_tokens,
+        )
+        return response.choices[0].message.content
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro DeepSeek: {str(e)}")
+
 
 # ============================================================
 # OPEN-METEO — PREVISÃO METEOROLÓGICA (GRATUITA, SEM API KEY)
@@ -567,13 +593,12 @@ async def recomendar_irrigacao(params: IrrigacaoRequest):
     solo_humidade = meteo["humidade_solo"]
     diario = meteo["previsao_diaria"]
 
-    # 4. Prompt para o Gemini
-    prompt = f"""
-Você é um engenheiro agrónomo especialista em irrigação e agricultura tropical,
+    # 4. Prompt para o DeepSeek
+    system_prompt = """Você é um engenheiro agrónomo especialista em irrigação e agricultura tropical,
 especialmente nos contextos de Angola, Moçambique e Brasil.
-Responda SEMPRE em português de forma clara e prática.
+Responda SEMPRE em português de forma clara e prática."""
 
-O agricultor quer saber: DEVO IRRIGAR AGORA? QUANTO? COMO?
+    user_prompt = f"""O agricultor quer saber: DEVO IRRIGAR AGORA? QUANTO? COMO?
 
 DADOS DO SOLO:
 - Nitrogénio (N): {params.N} mg/kg
@@ -620,8 +645,7 @@ Previsão diária (3 dias):
 RESPONDA NESTA ESTRUTURA:
 
 ## DECISÃO IMEDIATA
-Irrigar agora: SIM ou NÃO.
-A decisão se iriigar agora será sim ou Não, depebderá da Previsáo metereológica e do estado do solo tendo em conta a análise feita pelo sistema.
+Irrigar agora: SIM ou NÃO (e porquê, considerando a previsão meteo)
 
 ## PLANO DE IRRIGAÇÃO
 - Volume recomendado: litros/planta/dia ou mm/semana
@@ -642,22 +666,11 @@ Riscos de sobre-irrigação, sub-irrigação, ou condições meteo adversas
 ## DICAS PRÁTICAS
 2-3 recomendações concretas que o agricultor pode aplicar hoje
 
-Seja DIRECTO e PRÁTICO.
-"""
+Seja DIRECTO e PRÁTICO."""
 
-    # 5. Chamar DeepSeek (via OpenAI SDK)
-    try:
-        response = await ai_client.chat.completions.create(
-            model="deepseek-chat",
-            messages=[
-                {"role": "system", "content": "Você é um engenheiro agrónomo especialista em irrigação."},
-                {"role": "user", "content": prompt}
-            ],
-            stream=False
-        )
-        ai_response_text = response.choices[0].message.content
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erro ao consultar DeepSeek: {str(e)}")
+    # 5. Chamar DeepSeek
+    resposta_texto = await chamar_deepseek(system_prompt, user_prompt)
+
 
     # 6. Montar resposta
     parametros_analisados = {
@@ -683,7 +696,7 @@ Seja DIRECTO e PRÁTICO.
         cultura_recomendada=cultura,
         decisao_rapida=decisao,
         previsao_meteo=resumo_meteo,
-        recomendacao_irrigacao=ai_response_text,
+        recomendacao_irrigacao=resposta_texto,
         parametros_analisados=parametros_analisados,
     )
 
@@ -706,6 +719,141 @@ async def analise_completa(params: IrrigacaoRequest):
         previsao=previsao,
         irrigacao=irrigacao,
     )
+
+
+# ============================================================
+# CHATBOT AGROÍNTEL — /chat
+# ============================================================
+
+class ChatMessageItem(BaseModel):
+    role: str  # "user" or "assistant"
+    content: str
+
+class ChatRequest(BaseModel):
+    mensagem: str
+    historico: List[ChatMessageItem] = []
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+
+
+@app.post("/chat")
+async def chat_agroíntel(
+    body: ChatRequest,
+    current_user: Usuario = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Chatbot AgroIntel com contexto real da fazenda.
+    Carrega sensores, polígono e dados meteo e responde via DeepSeek.
+    """
+    if not ai_client:
+        raise HTTPException(
+            status_code=503,
+            detail="DeepSeek API não configurada. Defina DEEPSEEK_API_KEY no .env"
+        )
+
+    # 1. Carregar dados da fazenda do utilizador
+    fazenda = db.query(Fazenda).filter(Fazenda.id == current_user.fazenda_id).first()
+    zones = db.query(SensorZone).filter(SensorZone.fazenda_id == current_user.fazenda_id).all()
+
+    # 2. Construir resumo dos sensores
+    sensores_txt = ""
+    if zones:
+        linhas = []
+        for z in zones:
+            status_map = {
+                "optimal": "✅ Ótimo", "attention": "⚠️ Atenção",
+                "critical": "🚨 Crítico", "irrigating": "💧 Irrigando"
+            }
+            tipo = z.type.capitalize()
+            linhas.append(
+                f"  - [{tipo}] {z.name}: humidade={z.moisture}%, temp={z.temp}°C, "
+                f"cultura={z.crop or 'N/D'}, status={status_map.get(z.status, z.status)}, "
+                f"bomba={'LIGADA' if z.pumpOn else 'desligada'}, "
+                f"bateria={z.battery}%, sinal={z.signal}, "
+                f"chuva_prevista={z.rainForecast or 'N/D'}, "
+                f"IA={'ativa' if z.aiMode else 'inativa'}"
+            )
+        sensores_txt = "\n".join(linhas)
+    else:
+        sensores_txt = "  Nenhum sensor registado ainda."
+
+    # 3. Dados da fazenda
+    fazenda_nome = fazenda.nome if fazenda else "Fazenda"
+    area_definida = "Sim" if (fazenda and fazenda.polygon_coordinates and fazenda.polygon_coordinates != "[]") else "Não"
+
+    # 4. Obter dados meteorológicos (se localização disponível)
+    meteo_txt = "Dados meteorológicos não disponíveis (sem localização)."
+    if body.latitude and body.longitude:
+        try:
+            meteo = await obter_previsao_meteo(body.latitude, body.longitude)
+            dec = meteo.get("decisao_rapida", {})
+            resumo = meteo.get("previsao_horaria_resumo", {})
+            prox6h = resumo.get("proximas_6h", {})
+            prox24h = resumo.get("proximas_24h", {})
+            meteo_txt = (
+                f"  Temp. atual: {prox6h.get('temp_media', 'N/D')}°C | "
+                f"Humidade ar: {prox6h.get('humidade_media', 'N/D')}% | "
+                f"Chuva 24h: {prox24h.get('chuva_total_mm', 0)}mm | "
+                f"Decisão: {dec.get('motivo', 'N/D')}"
+            )
+        except Exception:
+            meteo_txt = "Erro ao obter dados meteorológicos."
+
+    # 5. System prompt com contexto completo
+    system_prompt = f"""És o AgroIntel, assistente agrícola inteligente do HydroSync.
+Respondes SEMPRE em português (pt-PT ou pt-BR), de forma clara, direta e amigável.
+Tens acesso em tempo real aos dados da fazenda do utilizador. Usa SEMPRE esses dados para personalizar as respostas.
+Se perguntarem sobre sensores, solo, irrigação ou culturas, baseia a resposta nos dados abaixo.
+
+=== CONTEXTO DA FAZENDA ===
+Nome: {fazenda_nome}
+Utilizador: {current_user.nome} ({current_user.email})
+Área mapeada: {area_definida}
+Total de sensores/equipamentos: {len(zones)}
+
+=== ESTADO DOS SENSORES ===
+{sensores_txt}
+
+=== DADOS METEOROLÓGICOS ===
+{meteo_txt}
+
+=== REGRAS DE RESPOSTA ===
+- Sê conciso mas informativo (máx. 4 parágrafos)
+- Quando há dados de sensores, cita-os explicitamente (ex: "O sensor Zona A tem 32% de humidade...")
+- Para alertas críticos, usa emojis relevantes
+- Se não tiveres dados suficientes, diz honestamente e sugere ações
+- Responde sempre em português"""
+
+    # 6. Construir histórico para DeepSeek
+    messages_to_send = [{"role": "system", "content": system_prompt}]
+    for msg in body.historico:
+        messages_to_send.append({"role": msg.role, "content": msg.content})
+    messages_to_send.append({"role": "user", "content": body.mensagem})
+
+    # 7. Chamar DeepSeek
+    try:
+        response = await ai_client.chat.completions.create(
+            model="deepseek-chat",
+            messages=messages_to_send,
+            stream=False,
+            max_tokens=800,
+            temperature=0.7,
+        )
+        resposta = response.choices[0].message.content
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro ao consultar DeepSeek: {str(e)}")
+
+    # 8. Retornar resposta e histórico actualizado
+    historico_atualizado = list(body.historico) + [
+        {"role": "user", "content": body.mensagem},
+        {"role": "assistant", "content": resposta},
+    ]
+
+    return {
+        "resposta": resposta,
+        "historico_atualizado": historico_atualizado,
+    }
 
 
 # ============================================================

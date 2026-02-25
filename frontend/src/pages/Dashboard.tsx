@@ -5,6 +5,7 @@ import { WeatherWidget } from '../components/dashboard/WeatherWidget';
 import { SystemMetricsSidebar } from '../components/dashboard/SystemMetricsSidebar';
 import { FarmMap } from '../components/dashboard/FarmMap';
 import { SectorsGrid } from '../components/dashboard/SectorsGrid';
+import ChatBot from '../components/dashboard/ChatBot';
 import type { Zone } from '../types';
 import { FileText } from 'lucide-react';
 import { api, authInfo } from '../lib/api';
@@ -235,6 +236,39 @@ export function Dashboard({ onNavigate }: DashboardProps) {
         }));
     };
 
+    const handleEquipmentPlaced = async (type: string, lat: number, lng: number) => {
+        const names: Record<string, string> = {
+            sensor: 'Sensor', tank: 'Reservatório', pump: 'Bomba', solar: 'Painel Solar', warehouse: 'Armém'
+        };
+        const payload = {
+            name: `${names[type] ?? type} ${Math.floor(Math.random() * 100)}`,
+            type,
+            status: 'optimal',
+            lat,
+            lng,
+            crop: 'Não definido',
+            moisture: type === 'sensor' ? 50 : 0,
+            temp: type === 'sensor' ? 25 : 0,
+            rainForecast: 'Sem dados',
+            battery: 100,
+            signal: 'ND',
+            lastUpdate: 'Agora',
+            aiMode: false,
+            pumpOn: false
+        };
+        try {
+            const created = await api.createZone(payload);
+            setZones((prev) => {
+                const updated = [...prev, created];
+                const fid = getFazendaIdFromToken();
+                if (fid) saveZonesLocal(fid, updated);
+                return updated;
+            });
+        } catch (err) {
+            console.error('Failed to place equipment', err);
+        }
+    };
+
     const handleSaveLocation = async () => {
         setIsEditMode(false);
         const fid = getFazendaIdFromToken();
@@ -281,6 +315,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
                                         onMapEdited={onMapEdited}
                                         onMapDeleted={onMapDeleted}
                                         onSaveLocation={handleSaveLocation}
+                                        onEquipmentPlaced={handleEquipmentPlaced}
                                         handleMarkerDragEnd={handleMarkerDragEnd}
                                         handleDeleteZone={handleDeleteZone}
                                     />
@@ -310,6 +345,9 @@ export function Dashboard({ onNavigate }: DashboardProps) {
                     <div className="h-12 w-full"></div>
                 </div>
             </main>
+
+            {/* ====== CHATBOT FLUTUANTE ====== */}
+            <ChatBot />
         </div>
     );
 }
