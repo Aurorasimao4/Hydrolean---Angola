@@ -1,21 +1,24 @@
+import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
-# Cria ficheiro sqlite chamado hydrolean2.db na mesma pasta (backend/hydrolean2.db)
-SQLALCHEMY_DATABASE_URL = "sqlite:///./hydrolean2.db"
+# Em produção (Render), usa PostgreSQL via DATABASE_URL
+# Em desenvolvimento, usa SQLite local
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./hydrolean2.db")
 
-# connect_args={"check_same_thread": False} é necessário apenas no SQLite para contornar problemas 
-# de acesso concorrente com FastAPI que não bloqueia o event loop em chamadas async
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
-)
+# Render usa URLs com prefixo "postgres://" (legacy), SQLAlchemy 2.x precisa de "postgresql://"
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+
+# Configuração do engine (SQLite precisa de check_same_thread=False)
+connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
+
+engine = create_engine(DATABASE_URL, connect_args=connect_args)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# Classe base a partir da qual todos os modelos herdarão
 Base = declarative_base()
 
-# Dependência do FastAPI para injetar a sessão da base de dados nas rotas
 def get_db():
     db = SessionLocal()
     try:
