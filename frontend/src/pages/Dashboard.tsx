@@ -47,7 +47,12 @@ export function Dashboard({ onNavigate }: DashboardProps) {
             lng: 15.7380,
             type: 'sensor' as const,
             aiMode: true,
-            pumpOn: false
+            pumpOn: false,
+            N: 85,
+            P: 40,
+            K: 45,
+            ph: 6.2,
+            rainfall: 120
         },
         {
             id: 2,
@@ -64,7 +69,12 @@ export function Dashboard({ onNavigate }: DashboardProps) {
             lng: 15.7420,
             type: 'sensor' as const,
             aiMode: true,
-            pumpOn: true
+            pumpOn: true,
+            N: 110,
+            P: 55,
+            K: 60,
+            ph: 5.8,
+            rainfall: 90
         },
         {
             id: 3,
@@ -141,16 +151,16 @@ export function Dashboard({ onNavigate }: DashboardProps) {
             <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} onNavigate={onNavigate} />
 
             <main className="flex-1 flex flex-col h-screen overflow-hidden relative">
-                <Topbar />
+                <Topbar onNavigate={onNavigate} />
 
                 {/* Dashboard Main Content Area */}
-                <div className="flex-1 overflow-y-auto p-8 scroll-smooth">
-                    <div className="max-w-[1400px] mx-auto flex flex-col xl:flex-row gap-8 items-start">
+                <div className="flex-1 overflow-y-auto p-4 lg:p-8 pb-24 lg:pb-8 scroll-smooth">
+                    <div className="max-w-[1400px] mx-auto flex flex-col xl:flex-row gap-6 lg:gap-8 items-start">
 
                         {(activeTab === 'visao-geral' || activeTab === 'mapa-interativo') ? (
                             <>
                                 {/* Map & Main Stats (Left/Center) */}
-                                <div className={`flex flex-col gap-6 w-full ${activeTab === 'mapa-interativo' ? 'flex-1 h-[calc(100vh-140px)] min-h-0' : 'flex-1 min-w-0 max-w-full xl:max-w-[calc(100%-412px)]'}`}>
+                                <div className={`flex flex-col gap-6 w-full ${activeTab === 'mapa-interativo' ? 'flex-1 h-[calc(100vh-160px)] lg:h-[calc(100vh-140px)] min-h-0' : 'flex-1 min-w-0 max-w-full xl:max-w-[calc(100%-412px)]'}`}>
                                     {activeTab === 'visao-geral' && <WeatherWidget />}
 
                                     <FarmMap

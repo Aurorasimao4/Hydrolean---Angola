@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import type { Zone } from '../../types';
 import { Settings, Battery, Wifi, Droplets, CloudSun, Map as MapIcon, BrainCircuit } from 'lucide-react';
+import { AiAnalysisModal } from './AiAnalysisModal';
 
 interface SectorsGridProps {
     zones: Zone[];
@@ -8,6 +10,8 @@ interface SectorsGridProps {
 }
 
 export function SectorsGrid({ zones, handleToggleAi, handleTogglePump }: SectorsGridProps) {
+    const [selectedZone, setSelectedZone] = useState<Zone | null>(null);
+
     return (
         <div className="flex-1 w-full flex flex-col gap-6">
             <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100 flex items-center justify-between">
@@ -93,8 +97,8 @@ export function SectorsGrid({ zones, handleToggleAi, handleTogglePump }: Sectors
                                 </div>
 
                                 {/* Controls */}
-                                <div className="mt-6 pt-5 border-t border-gray-100 flex items-center justify-between relative z-10">
-                                    <div className="flex items-center gap-3">
+                                <div className="mt-6 pt-5 border-t border-gray-100 flex items-center gap-3 relative z-10 flex-wrap">
+                                    <div className="flex items-center gap-3 flex-1 min-w-[200px]">
                                         <div className={`p-2 rounded-xl flex items-center justify-center transition-colors ${zone.aiMode ? 'bg-brand-accent/10' : 'bg-gray-100'}`}>
                                             <BrainCircuit size={18} className={zone.aiMode ? 'text-brand-accent animate-pulse' : 'text-gray-400'} />
                                         </div>
@@ -102,16 +106,22 @@ export function SectorsGrid({ zones, handleToggleAi, handleTogglePump }: Sectors
                                             <p className="text-xs font-bold text-gray-900 uppercase tracking-wider">Modo IA</p>
                                             <p className="text-[10px] text-gray-500 font-medium">Auto-irrigação</p>
                                         </div>
+                                        <label className="relative inline-flex items-center cursor-pointer ml-auto">
+                                            <input
+                                                type="checkbox"
+                                                className="sr-only peer"
+                                                checked={zone.aiMode || false}
+                                                onChange={() => handleToggleAi(zone.id)}
+                                            />
+                                            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-accent/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-accent"></div>
+                                        </label>
                                     </div>
-                                    <label className="relative inline-flex items-center cursor-pointer ml-auto">
-                                        <input
-                                            type="checkbox"
-                                            className="sr-only peer"
-                                            checked={zone.aiMode || false}
-                                            onChange={() => handleToggleAi(zone.id)}
-                                        />
-                                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-accent/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-accent"></div>
-                                    </label>
+                                    <button
+                                        onClick={() => setSelectedZone(zone)}
+                                        className="w-full mt-2 py-2.5 bg-brand-accent/10 text-brand-accent font-bold rounded-xl text-sm flex items-center justify-center gap-2 hover:bg-brand-accent/20 transition-colors border border-brand-accent/20"
+                                    >
+                                        <BrainCircuit size={16} /> Consultar Agrónomo IA
+                                    </button>
                                 </div>
 
                                 {/* Manual Action Warning - only show if AI is off */}
@@ -167,6 +177,12 @@ export function SectorsGrid({ zones, handleToggleAi, handleTogglePump }: Sectors
                     </div>
                 ))}
             </div>
+
+            <AiAnalysisModal
+                isOpen={!!selectedZone}
+                zone={selectedZone}
+                onClose={() => setSelectedZone(null)}
+            />
         </div>
     );
 }

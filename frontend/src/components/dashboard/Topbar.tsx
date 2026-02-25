@@ -1,15 +1,28 @@
 
-import { Search, Bell } from 'lucide-react';
+import { Search, Bell, Droplets } from 'lucide-react';
 
-export function Topbar() {
+interface TopbarProps {
+    onNavigate: (view: 'landing' | 'login' | 'register' | 'dashboard') => void;
+}
+
+export function Topbar({ onNavigate }: TopbarProps) {
     return (
-        <header className="h-20 bg-white/80 backdrop-blur-md border-b border-gray-200 flex items-center justify-between px-8 z-10 shrink-0">
-            <div className="relative w-96 group">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-brand-primary transition-colors" size={20} />
+        <header className="h-16 md:h-20 bg-white/80 backdrop-blur-md border-b border-gray-200 flex items-center justify-between px-4 md:px-8 z-[9000] shrink-0 sticky top-0">
+            {/* Mobile Logo */}
+            <div className="flex lg:hidden items-center gap-2 cursor-pointer" onClick={() => onNavigate('landing')}>
+                <div className="bg-brand-primary text-white p-1.5 rounded-lg shadow-sm">
+                    <Droplets size={20} strokeWidth={2.5} />
+                </div>
+                <span className="text-xl font-black tracking-tighter text-brand-black block leading-none">HydroSync</span>
+            </div>
+
+            {/* Desktop Search */}
+            <div className="relative w-full max-w-sm hidden md:block group">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-brand-primary transition-colors" size={18} />
                 <input
                     type="text"
-                    placeholder="Buscar sensor (ex: Milho), talhão ou alerta..."
-                    className="w-full pl-12 pr-4 py-3 bg-gray-100/80 border-2 border-transparent rounded-2xl text-sm font-medium focus:bg-white focus:border-brand-primary/30 focus:outline-none focus:ring-4 focus:ring-brand-primary/10 transition-all placeholder:text-gray-400"
+                    placeholder="Buscar sensor (ex: Milho), talhão..."
+                    className="w-full pl-11 pr-4 py-2.5 bg-gray-100/80 border-2 border-transparent rounded-xl text-sm font-medium focus:bg-white focus:border-brand-primary/30 focus:outline-none focus:ring-4 focus:ring-brand-primary/10 transition-all placeholder:text-gray-400"
                 />
             </div>
 

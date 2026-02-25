@@ -19,6 +19,13 @@ export interface Zone {
     aiMode?: boolean;
     pumpOn?: boolean;
 
+    // Soil parameters
+    N?: number;
+    P?: number;
+    K?: number;
+    ph?: number;
+    rainfall?: number;
+
     // Tank specific
     level?: number;
 }
