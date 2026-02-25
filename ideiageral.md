@@ -1,5 +1,5 @@
 HYDROSYNC
-Aágua certa, no
+A água certa, no
 momento certo
 Problemática
 Em Angola, muitos pequenos agricultores utilizam irrigação manual ou
