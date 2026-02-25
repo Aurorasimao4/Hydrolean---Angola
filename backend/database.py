@@ -1,8 +1,8 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
-# Cria ficheiro sqlite chamado hydrolean.db na mesma pasta (backend/hydrolean.db)
-SQLALCHEMY_DATABASE_URL = "sqlite:///./hydrolean.db"
+# Cria ficheiro sqlite chamado hydrolean2.db na mesma pasta (backend/hydrolean2.db)
+SQLALCHEMY_DATABASE_URL = "sqlite:///./hydrolean2.db"
 
 # connect_args={"check_same_thread": False} é necessário apenas no SQLite para contornar problemas 
 # de acesso concorrente com FastAPI que não bloqueia o event loop em chamadas async

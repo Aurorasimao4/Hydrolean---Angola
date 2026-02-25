@@ -24,9 +24,11 @@ from datetime import datetime, timezone
 from dotenv import load_dotenv
 
 # Database & Auth
-from database import engine, Base
-from auth import router as auth_router
-from models import Fazenda, Usuario
+from sqlalchemy.orm import Session
+from fastapi import Depends
+from database import engine, Base, get_db
+from auth import router as auth_router, get_current_user
+from models import Fazenda, Usuario, SensorZone
 
 # ============================================================
 # NOVO SDK — OpenAI (Para DeepSeek)
@@ -68,6 +70,134 @@ app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 # Adicionar rotas de Auth
 app.include_router(auth_router)
+
+# ============================================================
+# PERSISTÊNCIA DO MAPA (FAZENDA & SENSORES)
+# ============================================================
+
+class PolygonUpdateRequest(BaseModel):
+    polygon: str
+
+class ZoneCreate(BaseModel):
+    name: str
+    lat: float
+    lng: float
+    type: str = "sensor"
+    status: str = "optimal"
+    # Campos que seriam preenchidos por hardware/backend no mundo real, mas enviamos do frontend no MVP
+    crop: Optional[str] = "Não definido"
+    moisture: Optional[int] = 50
+    temp: Optional[int] = 25
+    rainForecast: Optional[str] = "Sem dados"
+    battery: Optional[int] = 100
+    signal: Optional[str] = "ND"
+    lastUpdate: Optional[str] = "Agora"
+    aiMode: Optional[bool] = False
+    pumpOn: Optional[bool] = False
+
+@app.put("/fazenda/polygon")
+async def update_polygon(
+    data: PolygonUpdateRequest,
+    current_user: Usuario = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    fazenda = db.query(Fazenda).filter(Fazenda.id == current_user.fazenda_id).first()
+    if not fazenda:
+        # Se não existe, cria a fazenda para este utilizador
+        fazenda = Fazenda(
+            id=current_user.fazenda_id,
+            nome="Fazenda",
+            nif="000000000",
+            endereco="",
+            logo_url=None,
+            polygon_coordinates=None
+        )
+        db.add(fazenda)
+        db.flush()  # Garante ID sem commit final
+    
+    fazenda.polygon_coordinates = data.polygon
+    db.commit()
+    return {"message": "Polígono da fazenda atualizado com sucesso"}
+
+@app.get("/fazenda/zones")
+async def get_zones(
+    current_user: Usuario = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    zones = db.query(SensorZone).filter(SensorZone.fazenda_id == current_user.fazenda_id).all()
+    return zones
+
+@app.post("/fazenda/zones")
+async def create_zone(
+    zone: ZoneCreate,
+    current_user: Usuario = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    nova_zone = SensorZone(
+        fazenda_id=current_user.fazenda_id,
+        name=zone.name,
+        lat=zone.lat,
+        lng=zone.lng,
+        type=zone.type,
+        status=zone.status,
+        crop=zone.crop,
+        moisture=zone.moisture,
+        temp=zone.temp,
+        rainForecast=zone.rainForecast,
+        battery=zone.battery,
+        signal=zone.signal,
+        lastUpdate=zone.lastUpdate,
+        aiMode=zone.aiMode,
+        pumpOn=zone.pumpOn
+    )
+    db.add(nova_zone)
+    db.commit()
+    db.refresh(nova_zone)
+    return nova_zone
+
+@app.put("/fazenda/zones/{zone_id}")
+async def update_zone(
+    zone_id: int,
+    zone_data: ZoneCreate,
+    current_user: Usuario = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    zone = db.query(SensorZone).filter(SensorZone.id == zone_id, SensorZone.fazenda_id == current_user.fazenda_id).first()
+    if not zone:
+        raise HTTPException(status_code=404, detail="Zona/Sensor não encontrad(o)a.")
+    
+    zone.name = zone_data.name
+    zone.lat = zone_data.lat
+    zone.lng = zone_data.lng
+    zone.type = zone_data.type
+    zone.status = zone_data.status
+    zone.crop = zone_data.crop
+    zone.moisture = zone_data.moisture
+    zone.temp = zone_data.temp
+    zone.rainForecast = zone_data.rainForecast
+    zone.battery = zone_data.battery
+    zone.signal = zone_data.signal
+    zone.lastUpdate = zone_data.lastUpdate
+    zone.aiMode = zone_data.aiMode
+    zone.pumpOn = zone_data.pumpOn
+
+    db.commit()
+    db.refresh(zone)
+    return zone
+
+@app.delete("/fazenda/zones/{zone_id}")
+async def delete_zone(
+    zone_id: int,
+    current_user: Usuario = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    zone = db.query(SensorZone).filter(SensorZone.id == zone_id, SensorZone.fazenda_id == current_user.fazenda_id).first()
+    if not zone:
+        raise HTTPException(status_code=404, detail="Zona/Sensor não encontrad(o)a.")
+    
+    db.delete(zone)
+    db.commit()
+    return {"message": "Sensor removido com sucesso"}
 
 # Carregar modelo e labels (caminho relativo ao main.py)
 MODEL_PATH = BASE_DIR / "models" / "NAIVEBAYES.pkl"

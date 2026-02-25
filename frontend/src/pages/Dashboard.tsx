@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Sidebar } from '../components/dashboard/Sidebar';
 import { Topbar } from '../components/dashboard/Topbar';
 import { WeatherWidget } from '../components/dashboard/WeatherWidget';
 import { SystemMetricsSidebar } from '../components/dashboard/SystemMetricsSidebar';
 import { FarmMap } from '../components/dashboard/FarmMap';
 import { SectorsGrid } from '../components/dashboard/SectorsGrid';
-import type { Zone, ZoneStatus } from '../types';
+import type { Zone } from '../types';
 import { FileText } from 'lucide-react';
 import { api, authInfo } from '../lib/api';
 
@@ -18,103 +18,118 @@ export function Dashboard({ onNavigate }: DashboardProps) {
     const [isEditMode, setIsEditMode] = useState(false);
     const [userProfile, setUserProfile] = useState<any>(null);
 
+    // Polygon representing the main plantation area
+    const [farmPolygon, setFarmPolygon] = useState<[number, number][]>([]);
+
+    const [zones, setZones] = useState<Zone[]>([]);
+
+    // localStorage helpers — chaves únicas por fazenda para isolar dados multi-tenant
+    const polygonKey = (fazendaId: number | string) => `hydrolean_polygon_${fazendaId}`;
+    const zonesKey = (fazendaId: number | string) => `hydrolean_zones_${fazendaId}`;
+
+    const savePolygonLocal = (fazendaId: number | string, coords: [number, number][]) => {
+        localStorage.setItem(polygonKey(fazendaId), JSON.stringify(coords));
+    };
+
+    const loadPolygonLocal = (fazendaId: number | string): [number, number][] | null => {
+        const raw = localStorage.getItem(polygonKey(fazendaId));
+        if (!raw) return null;
+        try { return JSON.parse(raw); } catch { return null; }
+    };
+
+    const saveZonesLocal = (fazendaId: number | string, z: Zone[]) => {
+        localStorage.setItem(zonesKey(fazendaId), JSON.stringify(z));
+    };
+
+    const loadZonesLocal = (fazendaId: number | string): Zone[] | null => {
+        const raw = localStorage.getItem(zonesKey(fazendaId));
+        if (!raw) return null;
+        try { return JSON.parse(raw); } catch { return null; }
+    };
+
+    // Lê o fazenda_id diretamente do JWT para carregar localStorage antes do /me terminar
+    const getFazendaIdFromToken = (): number | null => {
+        try {
+            const token = authInfo.getToken();
+            if (!token) return null;
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            return payload.fazenda_id ?? null;
+        } catch { return null; }
+    };
+
     useEffect(() => {
-        api.getMe()
-            .then(setUserProfile)
-            .catch((err) => {
-                console.error("Dashboard failed to fetch user profile:", err);
+        // 1 - IMEDIATO: Carrega do localStorage com chave específica do utilizador
+        const fazendaIdFromToken = getFazendaIdFromToken();
+        if (fazendaIdFromToken) {
+            const localPolygon = loadPolygonLocal(fazendaIdFromToken);
+            if (localPolygon && localPolygon.length > 0) setFarmPolygon(localPolygon);
+            const localZones = loadZonesLocal(fazendaIdFromToken);
+            if (localZones) setZones(localZones);
+        }
+
+        // 2 - ASYNC: Sync with backend (source of truth)
+        const loadDashboardData = async () => {
+            try {
+                const profile = await api.getMe();
+                setUserProfile(profile);
+                if (profile.polygon_coordinates) {
+                    try {
+                        const backendPolygon = JSON.parse(profile.polygon_coordinates);
+                        if (backendPolygon && backendPolygon.length > 0) {
+                            setFarmPolygon(backendPolygon);
+                            savePolygonLocal(profile.fazenda_id, backendPolygon);
+                        }
+                    } catch (e) { /* mantém dados locais */ }
+                }
+
+                const fetchedZones = await api.getZones();
+                if (fetchedZones && fetchedZones.length > 0) {
+                    setZones(fetchedZones);
+                    saveZonesLocal(profile.fazenda_id, fetchedZones);
+                }
+            } catch (err: any) {
+                console.error("Dashboard failed to fetch data:", err);
                 if (err.message === 'Não autorizado') {
                     authInfo.removeToken();
                     onNavigate('login');
                 }
-            });
+                // If backend fails, local data is still being used (already set above)
+            }
+        };
+
+        loadDashboardData();
     }, [onNavigate]);
 
-    // Force map resize when tab changes so Leaflet fetches new tiles
-    useEffect(() => {
-        setTimeout(() => {
-            window.dispatchEvent(new Event('resize'));
-        }, 100);
-    }, [activeTab]);
-
-    // Polygon representing the main plantation area
-    const [farmPolygon, setFarmPolygon] = useState<[number, number][]>([
-        [-12.7880, 15.7360],
-        [-12.7890, 15.7470],
-        [-12.7960, 15.7450],
-        [-12.7950, 15.7350],
-    ]);
-
-    const [zones, setZones] = useState<Zone[]>([
-        {
-            id: 1,
-            name: 'Setor Norte',
-            crop: 'Milho',
-            status: 'optimal' as ZoneStatus,
-            moisture: 65,
-            temp: 28,
-            rainForecast: 'Sem chuva prevista',
-            battery: 92,
-            signal: 'Rede 4G LTE',
-            lastUpdate: 'Agora',
-            lat: -12.7915,
-            lng: 15.7380,
-            type: 'sensor' as const,
-            aiMode: true,
-            pumpOn: false,
-            N: 85,
-            P: 40,
-            K: 45,
-            ph: 6.2,
-            rainfall: 120
-        },
-        {
-            id: 2,
-            name: 'Setor Sul',
-            crop: 'Tomate',
-            status: 'irrigating' as ZoneStatus,
-            moisture: 30,
-            temp: 29,
-            rainForecast: 'Chuva em 4h',
-            battery: 85,
-            signal: 'Rede 4G LTE',
-            lastUpdate: 'Agora',
-            lat: -12.7940,
-            lng: 15.7420,
-            type: 'sensor' as const,
-            aiMode: true,
-            pumpOn: true,
-            N: 110,
-            P: 55,
-            K: 60,
-            ph: 5.8,
-            rainfall: 90
-        },
-        {
-            id: 3,
-            name: 'Tanque Principal',
-            type: 'tank' as const,
-            level: 78,
-            lat: -12.7935,
-            lng: 15.7445,
-            status: 'tank' as ZoneStatus
+    // Dynamic Map Center
+    const mapCenter = useMemo<[number, number]>(() => {
+        if (farmPolygon.length > 0) {
+            return farmPolygon[0];
         }
-    ]);
+        if (zones.length > 0) {
+            return [zones[0].lat, zones[0].lng];
+        }
+        return [-12.7930, 15.7400]; // Default Huambo fallback
+    }, [farmPolygon, zones]);
 
-    // Map Data Simulation Center
-    const mapCenter: [number, number] = [-12.7930, 15.7400];
-
-    const onMapCreated = (e: any) => {
+    const onMapCreated = async (e: any) => {
         const { layerType, layer } = e;
         if (layerType === 'polygon') {
             const latlngs = layer.getLatLngs()[0];
             const newCoords = latlngs.map((ll: any) => [ll.lat, ll.lng]);
             setFarmPolygon(newCoords);
-            if (layer && layer.remove) layer.remove();
+            setTimeout(() => {
+                if (layer && layer.remove) layer.remove();
+            }, 10);
+
+            try {
+                const fid = getFazendaIdFromToken();
+                if (fid) savePolygonLocal(fid, newCoords); // Salva localmente primeiro
+                await api.updateFarmPolygon(newCoords);
+            } catch (err) { console.error("Failed to save polygon", err); }
+
         } else if (layerType === 'marker') {
             const latlng = layer.getLatLng();
-            const newZone: Zone = {
-                id: Date.now(),
+            const newZonePayload = {
                 name: 'Novo Sensor ' + Math.floor(Math.random() * 1000),
                 type: 'sensor',
                 status: 'optimal',
@@ -130,8 +145,69 @@ export function Dashboard({ onNavigate }: DashboardProps) {
                 aiMode: false,
                 pumpOn: false
             };
-            setZones([...zones, newZone]);
-            if (layer && layer.remove) layer.remove();
+
+            try {
+                const createdZone = await api.createZone(newZonePayload);
+                setZones((prev) => {
+                    const updated = [...prev, createdZone];
+                    const fid = getFazendaIdFromToken();
+                    if (fid) saveZonesLocal(fid, updated); // Salva localmente
+                    return updated;
+                });
+            } catch (err) {
+                console.error("Failed to create zone in DB", err);
+            }
+
+            setTimeout(() => {
+                if (layer && layer.remove) layer.remove();
+            }, 10);
+        }
+    };
+
+    const onMapEdited = async (e: any) => {
+        const { layers } = e;
+        let newCoords: [number, number][] = [];
+        layers.eachLayer((layer: any) => {
+            if (layer.getLatLngs) {
+                const latlngs = layer.getLatLngs()[0];
+                newCoords = latlngs.map((ll: any) => [ll.lat, ll.lng]);
+                setFarmPolygon(newCoords);
+            }
+        });
+        if (newCoords.length > 0) {
+            const fid = getFazendaIdFromToken();
+            if (fid) savePolygonLocal(fid, newCoords); // Salva localmente
+            try { await api.updateFarmPolygon(newCoords); } catch (err) { console.error("Edited polygon save failed", err); }
+        }
+    };
+
+    const onMapDeleted = async (e: any) => {
+        const { layers } = e;
+        let deletedPolygon = false;
+        layers.eachLayer((layer: any) => {
+            if (layer.getLatLngs) {
+                deletedPolygon = true;
+            }
+        });
+        if (deletedPolygon) {
+            setFarmPolygon([]);
+            const fid = getFazendaIdFromToken();
+            if (fid) savePolygonLocal(fid, []); // Limpa localmente
+            try { await api.updateFarmPolygon([]); } catch (err) { console.error("Deleted polygon save failed", err); }
+        }
+    };
+
+    const handleDeleteZone = async (id: number) => {
+        try {
+            await api.deleteZone(id);
+            setZones((prev) => {
+                const updated = prev.filter(z => z.id !== id);
+                const fid = getFazendaIdFromToken();
+                if (fid) saveZonesLocal(fid, updated); // Atualiza cache local
+                return updated;
+            });
+        } catch (err) {
+            console.error("Failed to delete zone", err);
         }
     };
 
@@ -157,6 +233,23 @@ export function Dashboard({ onNavigate }: DashboardProps) {
             }
             return z;
         }));
+    };
+
+    const handleSaveLocation = async () => {
+        setIsEditMode(false);
+        const fid = getFazendaIdFromToken();
+        // Salva no localStorage primeiro (garante persistência imediata)
+        if (fid && farmPolygon.length > 0) {
+            savePolygonLocal(fid, farmPolygon);
+        }
+        // Sincroniza com o backend
+        try {
+            if (farmPolygon.length > 0) {
+                await api.updateFarmPolygon(farmPolygon);
+            }
+        } catch (err) {
+            console.error("Backend save failed, localStorage está atualizado", err);
+        }
     };
 
     return (
@@ -185,7 +278,11 @@ export function Dashboard({ onNavigate }: DashboardProps) {
                                         farmPolygon={farmPolygon}
                                         zones={zones}
                                         onMapCreated={onMapCreated}
+                                        onMapEdited={onMapEdited}
+                                        onMapDeleted={onMapDeleted}
+                                        onSaveLocation={handleSaveLocation}
                                         handleMarkerDragEnd={handleMarkerDragEnd}
+                                        handleDeleteZone={handleDeleteZone}
                                     />
                                 </div>
 

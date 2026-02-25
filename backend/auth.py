@@ -175,5 +175,6 @@ async def read_users_me(current_user: Usuario = Depends(get_current_user), db: S
         "role": current_user.role,
         "fazenda_id": current_user.fazenda_id,
         "fazenda_nome": fazenda.nome if fazenda else None,
-        "logo_url": fazenda.logo_url if fazenda else None
+        "logo_url": fazenda.logo_url if fazenda else None,
+        "polygon_coordinates": fazenda.polygon_coordinates if fazenda else None
     }

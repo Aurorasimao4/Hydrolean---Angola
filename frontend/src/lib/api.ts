@@ -84,6 +84,51 @@ export const api = {
         return res.json();
     },
 
+    // --- MAP & ZONES ---
+    async updateFarmPolygon(polygon: [number, number][]) {
+        const res = await fetchWithAuth(`/fazenda/polygon`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ polygon: JSON.stringify(polygon) })
+        });
+        if (!res.ok) throw new Error('Falha ao atualizar área da fazenda');
+        return res.json();
+    },
+
+    async getZones() {
+        const res = await fetchWithAuth(`/fazenda/zones`);
+        if (!res.ok) throw new Error('Falha ao obter zonas do mapa');
+        return res.json();
+    },
+
+    async createZone(zoneData: any) {
+        const res = await fetchWithAuth(`/fazenda/zones`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(zoneData)
+        });
+        if (!res.ok) throw new Error('Falha ao guardar sensor');
+        return res.json();
+    },
+
+    async updateZone(id: number, zoneData: any) {
+        const res = await fetchWithAuth(`/fazenda/zones/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(zoneData)
+        });
+        if (!res.ok) throw new Error('Falha ao atualizar sensor');
+        return res.json();
+    },
+
+    async deleteZone(id: number) {
+        const res = await fetchWithAuth(`/fazenda/zones/${id}`, {
+            method: 'DELETE'
+        });
+        if (!res.ok) throw new Error('Falha ao apagar sensor');
+        return res.json();
+    },
+
     // --- AUTH ---
     async getMe() {
         const res = await fetchWithAuth(`/me`);

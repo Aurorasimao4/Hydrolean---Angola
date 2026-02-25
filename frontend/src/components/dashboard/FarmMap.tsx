@@ -2,7 +2,7 @@
 import { MapContainer, TileLayer, Marker, Popup, Polygon, FeatureGroup, useMap } from 'react-leaflet';
 import { useEffect } from 'react';
 import { EditControl } from 'react-leaflet-draw';
-import { Settings, Map as MapIcon, Droplets, CloudSun, CloudRain } from 'lucide-react';
+import { Settings, Map as MapIcon, Droplets, CloudSun, CloudRain, Trash2 } from 'lucide-react';
 import type { Zone } from '../../types';
 import { createCustomIcon } from '../../utils/mapHelpers';
 
@@ -14,7 +14,11 @@ interface FarmMapProps {
     farmPolygon: [number, number][];
     zones: Zone[];
     onMapCreated: (e: any) => void;
+    onMapEdited: (e: any) => void;
+    onMapDeleted: (e: any) => void;
+    onSaveLocation: () => void;
     handleMarkerDragEnd: (id: number, event: any) => void;
+    handleDeleteZone: (id: number) => void;
 }
 
 // Helper component to fix tile loading when parent element resizes
@@ -39,7 +43,11 @@ export function FarmMap({
     farmPolygon,
     zones,
     onMapCreated,
-    handleMarkerDragEnd
+    onMapEdited,
+    onMapDeleted,
+    onSaveLocation,
+    handleMarkerDragEnd,
+    handleDeleteZone
 }: FarmMapProps) {
     return (
         <div className={`bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col relative group z-0 ${activeTab === 'mapa-interativo' ? 'flex-1 min-h-0' : 'h-[400px] xl:h-[450px] 2xl:h-[550px] shrink-0'}`}>
@@ -48,8 +56,13 @@ export function FarmMap({
                 <h3 className="font-bold text-white flex items-center gap-2 drop-shadow-md"><MapIcon size={18} className="text-brand-accent" /> Plantio Principal (Huambo)</h3>
                 <div className="flex gap-2">
                     <button onClick={() => setIsEditMode(!isEditMode)} className={`flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg shadow-sm border z-[1001] pointer-events-auto transition-colors ${isEditMode ? 'bg-brand-accent text-white border-brand-accent' : 'bg-white/90 text-brand-black border-gray-200 backdrop-blur-md hover:bg-white'}`}>
-                        <Settings size={14} /> {isEditMode ? 'Sair da Edição' : 'Editar Fazenda'}
+                        <Settings size={14} /> {isEditMode ? 'Cancelar Edição' : 'Editar Fazenda'}
                     </button>
+                    {isEditMode && (
+                        <button onClick={onSaveLocation} className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg shadow-sm border z-[1001] pointer-events-auto transition-colors bg-green-500 text-white border-green-500 hover:bg-green-600">
+                            Salvar Localização
+                        </button>
+                    )}
                     <span className="flex items-center gap-1.5 text-xs font-bold text-brand-black bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-lg shadow-sm"><span className="w-2.5 h-2.5 rounded-full bg-green-500"></span> Ideal</span>
                     <span className="flex items-center gap-1.5 text-xs font-bold text-brand-black bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-lg shadow-sm"><span className="w-2.5 h-2.5 rounded-full bg-brand-primary animate-ping"></span> Irrigando</span>
                 </div>
@@ -76,6 +89,8 @@ export function FarmMap({
                             <EditControl
                                 position='topright'
                                 onCreated={onMapCreated}
+                                onEdited={onMapEdited}
+                                onDeleted={onMapDeleted}
                                 draw={{
                                     rectangle: false,
                                     polyline: false,
@@ -112,9 +127,16 @@ export function FarmMap({
                             <Popup className="custom-popup" closeButton={false}>
                                 <div className="p-1 min-w-[220px]">
                                     <h4 className="font-bold text-gray-900 border-b pb-2 mb-3 flex items-center justify-between">
-                                        {zone.name}
-                                        {zone.status === 'irrigating' && <span className="bg-brand-primary text-white text-[10px] px-2 py-0.5 rounded-full animate-pulse">Irrigando</span>}
-                                        {zone.status === 'optimal' && <span className="bg-green-500 text-white text-[10px] px-2 py-0.5 rounded-full">Ideal</span>}
+                                        <div className="flex items-center gap-2">
+                                            {zone.name}
+                                            {zone.status === 'irrigating' && <span className="bg-brand-primary text-white text-[10px] px-2 py-0.5 rounded-full animate-pulse">Irrigando</span>}
+                                            {zone.status === 'optimal' && <span className="bg-green-500 text-white text-[10px] px-2 py-0.5 rounded-full">Ideal</span>}
+                                        </div>
+                                        {isEditMode && (
+                                            <button onClick={() => handleDeleteZone(zone.id)} className="text-red-500 hover:text-red-700 p-1 rounded-md hover:bg-red-50 transition-colors">
+                                                <Trash2 size={16} />
+                                            </button>
+                                        )}
                                     </h4>
                                     {zone.type === 'sensor' ? (
                                         <div className="space-y-3">
