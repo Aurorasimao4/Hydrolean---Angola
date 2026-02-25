@@ -23,11 +23,18 @@ from pathlib import Path
 from datetime import datetime, timezone
 from dotenv import load_dotenv
 
+# Database & Auth
+from database import engine, Base
+from auth import router as auth_router
+from models import Fazenda, Usuario
+
 # ============================================================
 # NOVO SDK — OpenAI (Para DeepSeek)
 # pip install openai
 # ============================================================
 from openai import AsyncOpenAI
+import os
+from fastapi.staticfiles import StaticFiles
 
 load_dotenv()
 
@@ -37,6 +44,9 @@ load_dotenv()
 
 # Caminho base = pasta onde o main.py está (funciona em qualquer SO)
 BASE_DIR = Path(__file__).resolve().parent
+
+# Cria tabelas se não existirem
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="AgroIntel API",
@@ -51,6 +61,13 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Servir arquivos de uploads estaticamente (logos, etc)
+os.makedirs("uploads/logos", exist_ok=True)
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+
+# Adicionar rotas de Auth
+app.include_router(auth_router)
 
 # Carregar modelo e labels (caminho relativo ao main.py)
 MODEL_PATH = BASE_DIR / "models" / "NAIVEBAYES.pkl"

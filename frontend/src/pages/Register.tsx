@@ -1,105 +1,185 @@
 import { useState } from 'react';
-import { ArrowLeft, Droplets, Mail, Lock, User } from 'lucide-react';
-
+import { ArrowLeft, Mail, Lock, User, Camera, Tractor, Briefcase, MapPin } from 'lucide-react';
+import { api, authInfo } from '../lib/api';
 interface RegisterProps {
     onNavigate: (view: 'landing' | 'login' | 'register' | 'dashboard') => void;
 }
 
 export function Register({ onNavigate }: RegisterProps) {
     const [name, setName] = useState('');
+    const [fazendaNome, setFazendaNome] = useState('');
+    const [nif, setNif] = useState('');
     const [email, setEmail] = useState('');
+    const [endereco, setEndereco] = useState('');
     const [password, setPassword] = useState('');
+    const [logo, setLogo] = useState<File | null>(null);
+    const [logoPreview, setLogoPreview] = useState<string | null>(null);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+            setLogo(file);
+            setLogoPreview(URL.createObjectURL(file));
+        }
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        // Redirecting to Dashboard to simulate successful registration
-        if (name && email && password) {
-            onNavigate('dashboard');
+        setError(null);
+        setLoading(true);
+
+        try {
+            const formData = new FormData();
+            formData.append('nome', name);
+            formData.append('fazenda_nome', fazendaNome);
+            formData.append('nif', nif);
+            formData.append('email', email);
+            formData.append('endereco', endereco);
+            formData.append('senha', password);
+            if (logo) {
+                formData.append('logo', logo);
+            }
+
+            const res = await api.register(formData);
+            if (res.access_token) {
+                authInfo.setToken(res.access_token);
+                onNavigate('dashboard');
+            }
+        } catch (err: any) {
+            setError(err.message || 'Erro ao realizar o registo. Verifique os dados.');
+        } finally {
+            setLoading(false);
         }
     };
 
     return (
         <div className="min-h-screen bg-brand-white flex font-sans selection:bg-brand-accent selection:text-white">
             {/* Right side - Form (mirrored structurally) */}
-            <div className="w-full lg:w-1/2 flex flex-col px-8 sm:px-16 lg:px-24 py-12 order-1 lg:order-2 bg-white z-10">
+            <div className="w-full lg:w-1/2 flex flex-col px-8 sm:px-12 lg:px-20 py-8 order-1 lg:order-2 bg-white z-10 overflow-y-auto">
                 <button
                     onClick={() => onNavigate('landing')}
-                    className="flex items-center gap-2 text-gray-500 hover:text-brand-primary transition-colors w-fit mb-8"
+                    className="flex items-center gap-2 text-gray-500 hover:text-brand-primary transition-colors w-fit mb-4"
                 >
                     <ArrowLeft size={20} />
                     <span className="font-semibold">Voltar para a página inicial</span>
                 </button>
 
                 <div className="max-w-md w-full mx-auto flex-grow flex flex-col justify-center">
-                    <div className="flex items-center gap-2 mb-8">
-                        <div className="bg-brand-primary text-white p-2 rounded-xl">
-                            <Droplets size={24} strokeWidth={2.5} />
-                        </div>
-                        <span className="text-2xl font-bold tracking-tight text-brand-black">HydroSync</span>
+
+                    {/* Logo Image Picker */}
+                    <div className="flex flex-col items-center mb-8">
+                        <label htmlFor="logo-upload" className="relative cursor-pointer group flex flex-col items-center">
+                            <div className="w-24 h-24 rounded-full bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden transition-all group-hover:border-brand-primary mb-3">
+                                {logoPreview ? (
+                                    <img src={logoPreview} alt="Logo preview" className="w-full h-full object-cover" />
+                                ) : (
+                                    <Camera size={28} className="text-gray-400 group-hover:text-brand-primary transition-colors" />
+                                )}
+                            </div>
+                            <span className="text-sm font-bold text-gray-700">Logo da fazenda</span>
+                            <span className="text-xs text-gray-400">Toque para selecionar</span>
+                            <input
+                                id="logo-upload"
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={handleLogoChange}
+                            />
+                        </label>
                     </div>
 
-                    <h1 className="text-4xl font-extrabold text-brand-black mb-2">Crie sua conta</h1>
-                    <p className="text-gray-500 mb-8 leading-relaxed">Junte-se à revolução agrícola em Angola. Crie sua conta gratuita em menos de um minuto.</p>
+                    {error && (
+                        <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm font-medium mb-4">
+                            {error}
+                        </div>
+                    )}
 
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                        <div>
-                            <label className="block text-sm font-bold text-gray-700 mb-2">Nome Completo</label>
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400"><User size={20} /></div>
-                                <input
-                                    type="text"
-                                    value={name}
-                                    onChange={(e) => setName(e.target.value)}
-                                    className="block w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-accent outline-none text-brand-black transition-all"
-                                    placeholder="Seu nome"
-                                    required
-                                />
-                            </div>
+                    <form onSubmit={handleSubmit} className="space-y-3">
+                        <div className="relative">
+                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-brand-primary"><User size={18} /></div>
+                            <input
+                                type="text"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                className="block w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-accent focus:border-transparent outline-none text-brand-black transition-all"
+                                placeholder="Nome"
+                                required
+                            />
                         </div>
 
-                        <div>
-                            <label className="block text-sm font-bold text-gray-700 mb-2">E-mail</label>
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400"><Mail size={20} /></div>
-                                <input
-                                    type="email"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    className="block w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-accent outline-none text-brand-black transition-all"
-                                    placeholder="voce@fazenda.com"
-                                    required
-                                />
-                            </div>
+                        <div className="relative">
+                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-brand-primary"><Tractor size={18} /></div>
+                            <input
+                                type="text"
+                                value={fazendaNome}
+                                onChange={(e) => setFazendaNome(e.target.value)}
+                                className="block w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-accent focus:border-transparent outline-none text-brand-black transition-all"
+                                placeholder="Nome da fazenda"
+                                required
+                            />
                         </div>
 
-                        <div>
-                            <label className="block text-sm font-bold text-gray-700 mb-2">Senha</label>
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400"><Lock size={20} /></div>
-                                <input
-                                    type="password"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    className="block w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-accent outline-none text-brand-black transition-all"
-                                    placeholder="Crie uma senha forte"
-                                    required
-                                />
-                            </div>
+                        <div className="relative">
+                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-brand-primary"><Briefcase size={18} /></div>
+                            <input
+                                type="text"
+                                value={nif}
+                                onChange={(e) => setNif(e.target.value)}
+                                className="block w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-accent focus:border-transparent outline-none text-brand-black transition-all"
+                                placeholder="NIF"
+                                required
+                            />
                         </div>
 
-                        <div className="flex items-start gap-3 mt-4">
-                            <input type="checkbox" id="terms" className="mt-1.5 w-4 h-4 text-brand-primary rounded border-gray-300 focus:ring-brand-primary" required />
-                            <label htmlFor="terms" className="text-sm text-gray-500 leading-relaxed cursor-pointer">
-                                Eu concordo com os <a href="#" className="font-semibold text-brand-primary hover:underline">Termos de Serviço</a> e a <a href="#" className="font-semibold text-brand-primary hover:underline">Política de Privacidade</a> da HydroSync.
-                            </label>
+                        <div className="relative">
+                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-brand-primary"><Mail size={18} /></div>
+                            <input
+                                type="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                className="block w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-accent focus:border-transparent outline-none text-brand-black transition-all"
+                                placeholder="Email"
+                                required
+                            />
                         </div>
 
-                        <button type="submit" className="w-full bg-brand-primary hover:bg-brand-secondary text-white font-bold py-4 rounded-xl shadow-lg shadow-brand-primary/20 transition-all mt-4">
-                            Começar agora
+                        <div className="relative">
+                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-brand-primary"><MapPin size={18} /></div>
+                            <input
+                                type="text"
+                                value={endereco}
+                                onChange={(e) => setEndereco(e.target.value)}
+                                className="block w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-accent focus:border-transparent outline-none text-brand-black transition-all"
+                                placeholder="Endereço"
+                                required
+                            />
+                        </div>
+
+                        <div className="relative">
+                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-brand-primary"><Lock size={18} /></div>
+                            <input
+                                type="password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                className="block w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-accent focus:border-transparent outline-none text-brand-black transition-all"
+                                placeholder="Senha"
+                                required
+                            />
+                        </div>
+
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="w-full bg-[#4CAF50] hover:bg-[#45a049] text-white font-bold py-3.5 rounded-xl transition-all mt-6 disabled:opacity-70 disabled:cursor-not-allowed"
+                        >
+                            {loading ? 'Criando conta...' : 'Criar conta'}
                         </button>
                     </form>
 
-                    <p className="text-center text-gray-500 mt-8">
+                    <p className="text-center text-gray-500 mt-6 pb-6">
                         Já tem uma conta?{' '}
                         <button onClick={() => onNavigate('login')} className="text-brand-primary font-bold hover:text-brand-accent transition-colors">
                             Entrar

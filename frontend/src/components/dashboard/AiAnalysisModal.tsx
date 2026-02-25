@@ -55,27 +55,55 @@ export function AiAnalysisModal({ isOpen, onClose, zone }: AiAnalysisModalProps)
     // In a real app, you'd use a markdown parser library like react-markdown.
     const renderMarkdownText = (text: string) => {
         return text.split('\n').map((line, idx) => {
-            if (line.startsWith('##')) return <h3 key={idx} className="text-lg font-bold text-gray-800 mt-4 mb-2">{line.replace('##', '').trim()}</h3>;
-            if (line.startsWith('*') || line.startsWith('-')) return <li key={idx} className="ml-4 list-disc text-gray-600 mb-1">{line.replace(/^[-*]\s*/, '')}</li>;
             if (line.trim() === '') return <div key={idx} className="h-2"></div>;
 
-            // Format bold text
-            const boldRegex = /\*\*(.*?)\*\*/g;
-            if (boldRegex.test(line)) {
-                const parts = line.split(boldRegex);
+            // Bold text parser
+            const parseBold = (content: string) => {
+                const parts = content.split(/\*\*(.*?)\*\*/g);
+                return parts.map((part, i) =>
+                    i % 2 === 1 ? <strong key={i} className="text-gray-900 font-black">{part}</strong> : part
+                );
+            };
+
+            // Headers
+            if (line.startsWith('##')) {
                 return (
-                    <p key={idx} className="text-gray-600 mb-2">
-                        {parts.map((part, i) => i % 2 === 1 ? <strong key={i} className="text-gray-800 font-bold">{part}</strong> : part)}
-                    </p>
+                    <h3 key={idx} className="text-lg font-black text-brand-black mt-6 mb-3 flex items-center gap-2">
+                        <span className="w-1.5 h-5 bg-brand-accent rounded-full inline-block"></span>
+                        {line.replace(/^#+\s*/, '').trim()}
+                    </h3>
                 );
             }
 
-            return <p key={idx} className="text-gray-600 mb-2">{line}</p>;
+            // List Items
+            if (line.match(/^[-*]\s/)) {
+                return (
+                    <li key={idx} className="ml-5 list-disc text-gray-600 mb-2 pl-1 marker:text-brand-accent">
+                        {parseBold(line.replace(/^[-*]\s+/, ''))}
+                    </li>
+                );
+            }
+
+            // Numbered List Items
+            if (line.match(/^\d+\.\s/)) {
+                return (
+                    <li key={idx} className="ml-5 list-decimal text-gray-600 mb-2 pl-1 marker:text-brand-accent marker:font-bold">
+                        {parseBold(line.replace(/^\d+\.\s+/, ''))}
+                    </li>
+                );
+            }
+
+            // Normal paragraphs
+            return (
+                <p key={idx} className="text-gray-600 mb-3 leading-relaxed">
+                    {parseBold(line.trim())}
+                </p>
+            );
         });
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/40 backdrop-blur-sm animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-gray-900/40 backdrop-blur-sm animate-in fade-in duration-200">
             <div className="bg-white rounded-3xl shadow-xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden ring-1 ring-gray-200" onClick={e => e.stopPropagation()}>
                 {/* Header */}
                 <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">

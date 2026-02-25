@@ -7,6 +7,7 @@ import { FarmMap } from '../components/dashboard/FarmMap';
 import { SectorsGrid } from '../components/dashboard/SectorsGrid';
 import type { Zone, ZoneStatus } from '../types';
 import { FileText } from 'lucide-react';
+import { api, authInfo } from '../lib/api';
 
 interface DashboardProps {
     onNavigate: (view: 'landing' | 'login' | 'register' | 'dashboard') => void;
@@ -15,6 +16,19 @@ interface DashboardProps {
 export function Dashboard({ onNavigate }: DashboardProps) {
     const [activeTab, setActiveTab] = useState<'visao-geral' | 'mapa-interativo' | 'setores' | 'relatorios'>('visao-geral');
     const [isEditMode, setIsEditMode] = useState(false);
+    const [userProfile, setUserProfile] = useState<any>(null);
+
+    useEffect(() => {
+        api.getMe()
+            .then(setUserProfile)
+            .catch((err) => {
+                console.error("Dashboard failed to fetch user profile:", err);
+                if (err.message === 'Não autorizado') {
+                    authInfo.removeToken();
+                    onNavigate('login');
+                }
+            });
+    }, [onNavigate]);
 
     // Force map resize when tab changes so Leaflet fetches new tiles
     useEffect(() => {
@@ -148,7 +162,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
     return (
         <div className="min-h-screen bg-gray-50 flex font-sans selection:bg-brand-accent selection:text-white overflow-hidden">
 
-            <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} onNavigate={onNavigate} />
+            <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} onNavigate={onNavigate} userProfile={userProfile} />
 
             <main className="flex-1 flex flex-col h-screen overflow-hidden relative">
                 <Topbar onNavigate={onNavigate} />

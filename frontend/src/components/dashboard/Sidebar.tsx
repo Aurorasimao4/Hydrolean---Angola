@@ -15,9 +15,10 @@ interface SidebarProps {
     activeTab: 'visao-geral' | 'mapa-interativo' | 'setores' | 'relatorios';
     setActiveTab: (tab: 'visao-geral' | 'mapa-interativo' | 'setores' | 'relatorios') => void;
     onNavigate: (view: 'landing' | 'login' | 'register' | 'dashboard') => void;
+    userProfile?: any;
 }
 
-export function Sidebar({ activeTab, setActiveTab, onNavigate }: SidebarProps) {
+export function Sidebar({ activeTab, setActiveTab, onNavigate, userProfile }: SidebarProps) {
     return (
         <>
             {/* Desktop Sidebar */}
@@ -80,12 +81,20 @@ export function Sidebar({ activeTab, setActiveTab, onNavigate }: SidebarProps) {
                         <Settings size={18} className="text-gray-400" /> Configurações
                     </button>
                     <div className="flex items-center gap-3 group px-4 py-3 rounded-xl hover:bg-white border text-left border-transparent hover:border-gray-200 transition-all cursor-pointer shadow-sm">
-                        <div className="w-10 h-10 rounded-full bg-brand-dark flex items-center justify-center text-white font-bold text-sm shrink-0">
-                            JA
-                        </div>
+                        {userProfile?.logo_url ? (
+                            <img src={`http://localhost:8000${userProfile.logo_url}`} alt="Avatar" className="w-10 h-10 rounded-full object-cover shrink-0 border border-gray-200" />
+                        ) : (
+                            <div className="w-10 h-10 rounded-full bg-brand-dark flex items-center justify-center text-white font-bold text-sm shrink-0 uppercase">
+                                {userProfile?.nome ? userProfile.nome.substring(0, 2) : 'JA'}
+                            </div>
+                        )}
                         <div className="overflow-hidden">
-                            <p className="text-sm font-bold text-gray-900 leading-tight truncate">João Almeida</p>
-                            <p className="text-[11px] text-brand-primary font-bold truncate mt-0.5">Admin • Fazenda Esp.</p>
+                            <p className="text-sm font-bold text-gray-900 leading-tight truncate">
+                                {userProfile?.nome || 'Carregando...'}
+                            </p>
+                            <p className="text-[11px] text-brand-primary font-bold truncate mt-0.5">
+                                {userProfile?.role === 'admin' ? 'Admin' : 'Membro'} • {userProfile?.fazenda_nome || 'A carregar...'}
+                            </p>
                         </div>
                     </div>
                     <button

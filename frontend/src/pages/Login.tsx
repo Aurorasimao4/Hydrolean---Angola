@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { ArrowLeft, Droplets, Mail, Lock } from 'lucide-react';
+import { api, authInfo } from '../lib/api';
 
 interface LoginProps {
     onNavigate: (view: 'landing' | 'login' | 'register' | 'dashboard') => void;
@@ -8,12 +9,28 @@ interface LoginProps {
 export function Login({ onNavigate }: LoginProps) {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        // Redirecting to Dashboard to simulate successful login
-        if (email && password) {
-            onNavigate('dashboard');
+        setError(null);
+        setLoading(true);
+
+        try {
+            const formData = new URLSearchParams();
+            formData.append('username', email);
+            formData.append('password', password);
+
+            const res = await api.login(formData);
+            if (res.access_token) {
+                authInfo.setToken(res.access_token);
+                onNavigate('dashboard');
+            }
+        } catch (err: any) {
+            setError(err.message || 'Erro ao realizar login. Verifique suas credenciais.');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -41,6 +58,13 @@ export function Login({ onNavigate }: LoginProps) {
                     <p className="text-gray-500 mb-8 leading-relaxed">Acesse o seu painel de controle e acompanhe a irrigação da sua plantação em tempo real.</p>
 
                     <form onSubmit={handleSubmit} className="space-y-5">
+
+                        {error && (
+                            <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm font-medium mb-4">
+                                {error}
+                            </div>
+                        )}
+
                         <div>
                             <label className="block text-sm font-bold text-gray-700 mb-2">E-mail</label>
                             <div className="relative">
@@ -78,8 +102,12 @@ export function Login({ onNavigate }: LoginProps) {
                             </div>
                         </div>
 
-                        <button type="submit" className="w-full bg-brand-primary hover:bg-brand-secondary text-white font-bold py-4 rounded-xl shadow-lg shadow-brand-primary/20 transition-all mt-4">
-                            Entrar na conta
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="w-full bg-brand-primary hover:bg-brand-secondary text-white font-bold py-4 rounded-xl shadow-lg shadow-brand-primary/20 transition-all mt-4 disabled:opacity-70 disabled:cursor-not-allowed"
+                        >
+                            {loading ? 'A entrar...' : 'Entrar na conta'}
                         </button>
                     </form>
 
