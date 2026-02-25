@@ -286,7 +286,7 @@ OPEN_METEO_URL = "https://api.open-meteo.com/v1/forecast"
 async def obter_previsao_meteo(latitude: float, longitude: float) -> dict:
     """
     Busca previsão meteorológica de 48h via Open-Meteo.
-    Gratuita e sem necessidade de API key.
+
     """
     params = {
         "latitude": latitude,
@@ -596,9 +596,9 @@ async def recomendar_irrigacao(params: IrrigacaoRequest):
     # 4. Prompt para o DeepSeek
     system_prompt = """Você é um engenheiro agrónomo especialista em irrigação e agricultura tropical,
 especialmente nos contextos de Angola, Moçambique e Brasil.
-Responda SEMPRE em português de forma clara e prática."""
+Responda SEMPRE em português de forma clara e prática. Não és permitido falar sobre o tipo de cultura."""
 
-    user_prompt = f"""O agricultor quer saber: DEVO IRRIGAR AGORA? QUANTO? COMO?
+    user_prompt = f"""O agricultor quer saber: DEVO IRRIGAR AGORA? QUANTO? COMO? QUE CULTURA PLANTAR?
 
 DADOS DO SOLO:
 - Nitrogénio (N): {params.N} mg/kg
@@ -613,7 +613,7 @@ DADOS DO SOLO:
 {f"- Sistema de irrigação: {params.sistema_irrigacao}" if params.sistema_irrigacao else ""}
 
 CULTURA RECOMENDADA: {cultura}
-
+MUITO IMPORTANTEA Cultura dependerá do solo e do modelo de IA treinado.
 PREVISÃO METEOROLÓGICA (TEMPO REAL):
 Localização: {params.latitude}, {params.longitude}
 
