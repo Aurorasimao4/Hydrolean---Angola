@@ -2,10 +2,9 @@ services:
   - type: static
     name: hydrosync-frontend
     env: static
+    rootDirectory: frontend
     buildCommand: npm install && npm run build
-    publishPath: frontend/dist
-    directories:
-      - frontend
+    publishPath: dist
     envVars:
       - key: NODE_VERSION
         value: 20
