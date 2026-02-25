@@ -5,12 +5,14 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
+    "start": "node server.js",
     "render-build": "npm install && npm run build"
   },
   "dependencies": {
+    "express": "^4.21.0",
     "@types/leaflet-draw": "^1.0.13",
     "leaflet": "^1.9.4",
     "leaflet-draw": "^1.0.4",
