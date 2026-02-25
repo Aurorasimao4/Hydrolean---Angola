@@ -1,10 +1,11 @@
 services:
-  - type: static
+  - type: web
     name: hydrosync-frontend
-    env: static
+    env: node
+    plan: free
     rootDirectory: frontend
     buildCommand: npm install && npm run build
-    publishPath: dist
+    startCommand: npm run preview -- --host 0.0.0.0 --port $PORT
     envVars:
       - key: NODE_VERSION
         value: 20
