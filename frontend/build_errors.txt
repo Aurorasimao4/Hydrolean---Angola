@@ -1,0 +1,13 @@
+﻿src/components/dashboard/FarmMap.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/components/dashboard/FarmMap.tsx(4,67): error TS6133: 'BrainCircuit' is declared but its value is never read.
+src/components/dashboard/FarmMap.tsx(5,10): error TS1484: 'Zone' is a type and must be imported using a type-only import when 'verbatimModuleSyntax' is enabled.
+src/components/dashboard/SectorsGrid.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/components/dashboard/SectorsGrid.tsx(2,10): error TS1484: 'Zone' is a type and must be imported using a type-only import when 'verbatimModuleSyntax' is enabled.
+src/components/dashboard/Sidebar.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/components/dashboard/SystemMetricsSidebar.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/components/dashboard/Topbar.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/components/dashboard/WeatherWidget.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/pages/Dashboard.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/pages/Dashboard.tsx(8,10): error TS1484: 'Zone' is a type and must be imported using a type-only import when 'verbatimModuleSyntax' is enabled.
+src/pages/Dashboard.tsx(8,16): error TS1484: 'ZoneStatus' is a type and must be imported using a type-only import when 'verbatimModuleSyntax' is enabled.
+src/pages/Dashboard.tsx(180,34): error TS2304: Cannot find name 'FileText'.
