@@ -269,7 +269,7 @@ export default function ChatBot() {
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 className={`
-          fixed bottom-6 right-6 z-[999]
+          fixed bottom-6 right-6 z-[9999]
           w-14 h-14 rounded-full
           flex items-center justify-center
           shadow-lg hover:shadow-xl
@@ -287,7 +287,7 @@ export default function ChatBot() {
             {/* ==================== JANELA DO CHAT ==================== */}
             <div
                 className={`
-          fixed bottom-24 right-6 z-[999]
+          fixed bottom-24 right-6 z-[9999]
           w-[380px] max-h-[600px]
           bg-white rounded-2xl
           shadow-2xl border border-gray-200
@@ -385,7 +385,9 @@ export default function ChatBot() {
                                     }
                 `}
                             >
-                                <p className="whitespace-pre-wrap break-words">{msg.content}</p>
+                                <p className="whitespace-pre-wrap break-words">
+                                    {msg.content.replace(/\*\*/g, '').replace(/\*/g, '').replace(/#/g, '')}
+                                </p>
                             </div>
                             {msg.role === "user" && (
                                 <div className="w-7 h-7 bg-brand-dark rounded-full flex items-center justify-center shrink-0">

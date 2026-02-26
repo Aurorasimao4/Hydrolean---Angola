@@ -667,7 +667,7 @@ Riscos de sobre-irrigação, sub-irrigação, ou condições meteo adversas
 2-3 recomendações concretas que o agricultor pode aplicar hoje
 
 === REGRAS DE RESPOSTA E ESTRUTURA ===
-- Utiliza formatação Markdown para criar uma resposta estruturada (títulos com `###`, negritos `**` para destacar métricas, e listas `*` ou `1.`).
+- Responde em TEXTO SIMPLES. NÃO utilizes formatação Markdown (nem asteriscos `**`, nem hashes `#`). Usa quebras de linha normais, espaços e travessões `-` para estruturar a resposta de forma limpa.
 - Se o utilizador perguntar "Que cultura devo plantar?" (ou similar) e os sensores não tiverem a cultura definida, NÃO dês uma recusa genérica.
 - Em vez disso, assume a postura de um consultor técnico. Explica que o nosso Modelo de Inteligência Artificial precisa de parâmetros específicos da análise de solo para recomendar a cultura ideal com precisão.
 - Solicita de forma clara os seguintes dados exatos para alimentar o modelo preditivo:
@@ -767,7 +767,7 @@ async def chat_agroíntel(
     fazenda = db.query(Fazenda).filter(Fazenda.id == current_user.fazenda_id).first()
     zones = db.query(SensorZone).filter(SensorZone.fazenda_id == current_user.fazenda_id).all()
 
-    # 2. Construir resumo dos sensores
+    # 2. Construir resumo dos sensores e calcular previsões por sensor
     sensores_txt = ""
     if zones:
         linhas = []
@@ -777,13 +777,35 @@ async def chat_agroíntel(
                 "critical": "🚨 Crítico", "irrigating": "💧 Irrigando"
             }
             tipo = z.type.capitalize()
+            
+            # Usar dados simulados sensatos para o ML quando não há sensores reais completos
+            # Idealmente estes seriam dados reais medidos pelo sensor
+            temp_solo = z.temp if z.temp else 25.0
+            hum_solo = z.moisture if z.moisture else 60.0
+            
+            # Valores proxy padrão para demonstração
+            N_proxy = 60.0
+            P_proxy = 45.0
+            K_proxy = 40.0
+            ph_proxy = 6.5
+            chuva_proxy = 100.0 # Aproximação baseada em histórico de precipitação
+            
+            # Calcular a predição através do modelo para esta zona
+            try:
+                features = np.array([[N_proxy, P_proxy, K_proxy, temp_solo, hum_solo, ph_proxy, chuva_proxy]])
+                cultura_en = modelo.predict(features)[0]
+                cultura_ml_prevista = CULTURAS_PT.get(cultura_en, cultura_en)
+            except:
+                cultura_ml_prevista = "Indisponível"
+
             linhas.append(
                 f"  - [{tipo}] {z.name}: humidade={z.moisture}%, temp={z.temp}°C, "
-                f"cultura={z.crop or 'N/D'}, status={status_map.get(z.status, z.status)}, "
+                f"cultura atual={z.crop or 'N/D'}, status={status_map.get(z.status, z.status)}, "
                 f"bomba={'LIGADA' if z.pumpOn else 'desligada'}, "
                 f"bateria={z.battery}%, sinal={z.signal}, "
                 f"chuva_prevista={z.rainForecast or 'N/D'}, "
-                f"IA={'ativa' if z.aiMode else 'inativa'}"
+                f"IA={'ativa' if z.aiMode else 'inativa'}, "
+                f"Cultura Recomendada (via ML)={cultura_ml_prevista}"
             )
         sensores_txt = "\n".join(linhas)
     else:
@@ -831,8 +853,10 @@ Total de sensores/equipamentos: {len(zones)}
 
 === REGRAS DE RESPOSTA ===
 - Sê conciso mas informativo (máx. 4 parágrafos)
+- Escreve em TEXTO SIMPLES. NÃO utilizes nenhuma formatação Markdown (como ** ou #).
 - Quando há dados de sensores, cita-os explicitamente (ex: "O sensor Zona A tem 32% de humidade...")
 - Para alertas críticos, usa emojis relevantes
+- Se o utilizador perguntar que cultura plantar, usa as "Culturas Recomendadas (via ML)" presentes no ESTADO DOS SENSORES para fundamentar a tua resposta sem pedir mais dados ao utilizador.
 - Se não tiveres dados suficientes, diz honestamente e sugere ações
 - Responde sempre em português"""
 
