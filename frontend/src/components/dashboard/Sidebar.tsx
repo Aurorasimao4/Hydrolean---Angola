@@ -1,6 +1,5 @@
 
 import {
-    Droplets,
     Map as MapIcon,
     Settings,
     LogOut,
@@ -25,13 +24,7 @@ export function Sidebar({ activeTab, setActiveTab, onNavigate, userProfile }: Si
             <aside className="w-72 bg-white hidden lg:flex flex-col border-r border-gray-200 z-50 shadow-sm relative h-screen">
                 {/* Logo Area */}
                 <div className="p-6 border-b border-gray-100 flex items-center justify-center md:justify-start gap-3 cursor-pointer" onClick={() => onNavigate('landing')}>
-                    <div className="bg-brand-primary text-white p-2 rounded-xl shadow-md rotate-3 hover:rotate-0 transition-transform">
-                        <Droplets size={26} strokeWidth={2.5} />
-                    </div>
-                    <div>
-                        <span className="text-2xl font-black tracking-tighter text-brand-black block leading-none">HydroSync</span>
-                        <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest block mt-1">Plataforma Hídrica</span>
-                    </div>
+                    <img src="/logo-horizontal.png" alt="HydroSync" className="h-10 w-auto object-contain" />
                 </div>
 
                 {/* Primary Navigation */}

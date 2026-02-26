@@ -1,5 +1,5 @@
 
-import { Search, Bell, Droplets } from 'lucide-react';
+import { Search, Bell } from 'lucide-react';
 
 interface TopbarProps {
     onNavigate: (view: 'landing' | 'login' | 'register' | 'dashboard') => void;
@@ -10,10 +10,7 @@ export function Topbar({ onNavigate }: TopbarProps) {
         <header className="h-16 md:h-20 bg-white/80 backdrop-blur-md border-b border-gray-200 flex items-center justify-between px-4 md:px-8 z-[9000] shrink-0 sticky top-0">
             {/* Mobile Logo */}
             <div className="flex lg:hidden items-center gap-2 cursor-pointer" onClick={() => onNavigate('landing')}>
-                <div className="bg-brand-primary text-white p-1.5 rounded-lg shadow-sm">
-                    <Droplets size={20} strokeWidth={2.5} />
-                </div>
-                <span className="text-xl font-black tracking-tighter text-brand-black block leading-none">HydroSync</span>
+                <img src="/logo-horizontal.png" alt="HydroSync" className="h-8 w-auto object-contain" />
             </div>
 
             {/* Desktop Search */}

@@ -38,11 +38,12 @@ export function Landing({ onNavigate }: LandingProps) {
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center">
                         {/* Logo */}
-                        <div className="flex items-center gap-2 cursor-pointer group">
-                            <div className={`p-2 rounded-xl transition-colors ${scrolled ? 'bg-brand-primary text-white' : 'bg-white/10 backdrop-blur-md text-white'}`}>
-                                <Droplets size={26} strokeWidth={2.5} />
-                            </div>
-                            <span className={`text-2xl font-bold tracking-tight transition-colors ${scrolled ? 'text-brand-primary' : 'text-white drop-shadow-md'}`}>HydroSync</span>
+                        <div className="flex items-center gap-2 cursor-pointer group" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+                            <img
+                                src="/logo-horizontal.png"
+                                alt="HydroSync"
+                                className={`h-10 w-auto object-contain transition-all ${scrolled ? '' : 'brightness-0 invert'}`}
+                            />
                         </div>
 
                         {/* Desktop Navigation */}
@@ -345,8 +346,7 @@ export function Landing({ onNavigate }: LandingProps) {
                     <div className="grid md:grid-cols-12 gap-12 mb-16">
                         <div className="md:col-span-5">
                             <div className="flex items-center gap-2 mb-6 opacity-80 hover:opacity-100 transition-opacity">
-                                <Droplets size={28} className="text-brand-accent" strokeWidth={2.5} />
-                                <span className="text-2xl font-bold text-brand-white tracking-tight">HydroSync</span>
+                                <img src="/logo-horizontal.png" alt="HydroSync" className="h-10 w-auto object-contain brightness-0 invert" />
                             </div>
                             <p className="text-lg leading-relaxed max-w-sm mb-6 font-light">
                                 A água certa, no momento exato. Nascido para revolucionar o agronegócio de pequeno e médio porte em Angola.

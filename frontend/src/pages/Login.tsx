@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowLeft, Droplets, Mail, Lock } from 'lucide-react';
+import { ArrowLeft, Mail, Lock } from 'lucide-react';
 import { api, authInfo } from '../lib/api';
 
 interface LoginProps {
@@ -47,11 +47,8 @@ export function Login({ onNavigate }: LoginProps) {
                 </button>
 
                 <div className="max-w-md w-full mx-auto flex-grow flex flex-col justify-center">
-                    <div className="flex items-center gap-2 mb-10">
-                        <div className="bg-brand-primary text-white p-2 rounded-xl">
-                            <Droplets size={24} strokeWidth={2.5} />
-                        </div>
-                        <span className="text-2xl font-bold tracking-tight text-brand-black">HydroSync</span>
+                    <div className="flex items-center gap-3 mb-10">
+                        <img src="/logo-horizontal.png" alt="HydroSync" className="h-10 w-auto object-contain" />
                     </div>
 
                     <h1 className="text-4xl font-extrabold text-brand-black mb-2">Bem-vindo de volta</h1>
