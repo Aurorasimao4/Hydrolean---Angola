@@ -666,6 +666,17 @@ Riscos de sobre-irrigação, sub-irrigação, ou condições meteo adversas
 ## DICAS PRÁTICAS
 2-3 recomendações concretas que o agricultor pode aplicar hoje
 
+=== REGRAS DE RESPOSTA E ESTRUTURA ===
+- Utiliza formatação Markdown para criar uma resposta estruturada (títulos com `###`, negritos `**` para destacar métricas, e listas `*` ou `1.`).
+- Se o utilizador perguntar "Que cultura devo plantar?" (ou similar) e os sensores não tiverem a cultura definida, NÃO dês uma recusa genérica.
+- Em vez disso, assume a postura de um consultor técnico. Explica que o nosso Modelo de Inteligência Artificial precisa de parâmetros específicos da análise de solo para recomendar a cultura ideal com precisão.
+- Solicita de forma clara os seguintes dados exatos para alimentar o modelo preditivo:
+  * Níveis de Nitrogénio (N), Fósforo (P) e Potássio (K) em mg/kg
+  * pH do solo
+  * Nível de precipitação histórica (mm)
+- Mantém um tom direto, focado na solução e sem rodeios. Não faças perguntas vagas sobre o objetivo do agricultor; foca-te nos dados técnicos.
+
+
 Seja DIRECTO e PRÁTICO."""
 
     # 5. Chamar DeepSeek

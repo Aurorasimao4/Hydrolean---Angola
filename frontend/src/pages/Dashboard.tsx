@@ -5,9 +5,9 @@ import { WeatherWidget } from '../components/dashboard/WeatherWidget';
 import { SystemMetricsSidebar } from '../components/dashboard/SystemMetricsSidebar';
 import { FarmMap } from '../components/dashboard/FarmMap';
 import { SectorsGrid } from '../components/dashboard/SectorsGrid';
+import { WeatherPage } from './WeatherPage';
 import ChatBot from '../components/dashboard/ChatBot';
 import type { Zone } from '../types';
-import { FileText } from 'lucide-react';
 import { api, authInfo } from '../lib/api';
 
 interface DashboardProps {
@@ -15,7 +15,7 @@ interface DashboardProps {
 }
 
 export function Dashboard({ onNavigate }: DashboardProps) {
-    const [activeTab, setActiveTab] = useState<'visao-geral' | 'mapa-interativo' | 'setores' | 'relatorios'>('visao-geral');
+    const [activeTab, setActiveTab] = useState<'visao-geral' | 'mapa-interativo' | 'setores' | 'previsao'>('visao-geral');
     const [isEditMode, setIsEditMode] = useState(false);
     const [userProfile, setUserProfile] = useState<any>(null);
 
@@ -326,18 +326,14 @@ export function Dashboard({ onNavigate }: DashboardProps) {
                                     <SystemMetricsSidebar />
                                 )}
                             </>
-                        ) : activeTab === 'setores' ? (
+                        ) : activeTab === 'previsao' ? (
+                            <WeatherPage lat={mapCenter[0]} lng={mapCenter[1]} />
+                        ) : (
                             <SectorsGrid
                                 zones={zones}
                                 handleToggleAi={handleToggleAi}
                                 handleTogglePump={handleTogglePump}
                             />
-                        ) : (
-                            <div className="flex-1 flex flex-col gap-6 items-center justify-center min-h-[500px] text-gray-500">
-                                <FileText size={48} className="text-gray-300 mb-2" />
-                                <p className="text-lg font-bold">Módulo de Relatórios em Breve</p>
-                                <p className="text-sm">Geração de PDFs, Excel e análises detalhadas.</p>
-                            </div>
                         )}
 
                     </div>

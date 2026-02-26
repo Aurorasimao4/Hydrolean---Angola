@@ -3,16 +3,14 @@ import {
     Map as MapIcon,
     Settings,
     LogOut,
-    BrainCircuit,
     LayoutDashboard,
-    FileText,
-    PieChart,
-    ChevronRight
+    ChevronRight,
+    CloudSun
 } from 'lucide-react';
 
 interface SidebarProps {
-    activeTab: 'visao-geral' | 'mapa-interativo' | 'setores' | 'relatorios';
-    setActiveTab: (tab: 'visao-geral' | 'mapa-interativo' | 'setores' | 'relatorios') => void;
+    activeTab: 'visao-geral' | 'mapa-interativo' | 'setores';
+    setActiveTab: (tab: 'visao-geral' | 'mapa-interativo' | 'setores') => void;
     onNavigate: (view: 'landing' | 'login' | 'register' | 'dashboard') => void;
     userProfile?: any;
 }
@@ -52,19 +50,11 @@ export function Sidebar({ activeTab, setActiveTab, onNavigate, userProfile }: Si
                         {activeTab === 'setores' && <ChevronRight size={16} className="text-white/70" />}
                     </button>
                     <button
-                        onClick={() => setActiveTab('relatorios')}
-                        className={`w-full flex items-center justify-between px-4 py-3.5 font-bold text-sm rounded-xl transition-all ${activeTab === 'relatorios' ? 'bg-brand-primary text-white shadow-md shadow-brand-primary/20 translate-x-1' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}`}
+                        onClick={() => setActiveTab('previsao' as any)}
+                        className={`w-full flex items-center justify-between px-4 py-3.5 font-bold text-sm rounded-xl transition-all ${activeTab === ('previsao' as any) ? 'bg-brand-primary text-white shadow-md shadow-brand-primary/20 translate-x-1' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}`}
                     >
-                        <div className="flex items-center gap-3"><FileText size={20} className={activeTab === 'relatorios' ? 'text-brand-accent' : 'text-gray-400'} /> Relatórios & Logs</div>
-                        {activeTab === 'relatorios' && <ChevronRight size={16} className="text-white/70" />}
-                    </button>
-
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest pl-3 mb-4 mt-8">Energia & IA</p>
-                    <button className="w-full flex items-center justify-between px-4 py-3 font-medium text-sm rounded-xl text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors">
-                        <div className="flex items-center gap-3"><PieChart size={20} className="text-gray-400" /> Consumo Solar</div>
-                    </button>
-                    <button className="w-full flex items-center justify-between px-4 py-3 font-medium text-sm rounded-xl text-brand-dark hover:bg-brand-dark/5 transition-colors">
-                        <div className="flex items-center gap-3"><BrainCircuit size={20} className="text-brand-accent" /> Parâmetros IA <span className="text-[9px] bg-brand-primary text-white px-1.5 py-0.5 rounded-full ml-1">BETA</span></div>
+                        <div className="flex items-center gap-3"><CloudSun size={20} className={activeTab === ('previsao' as any) ? 'text-brand-accent' : 'text-gray-400'} /> Previsão Tempo</div>
+                        {activeTab === ('previsao' as any) && <ChevronRight size={16} className="text-white/70" />}
                     </button>
                 </nav>
 
@@ -114,9 +104,9 @@ export function Sidebar({ activeTab, setActiveTab, onNavigate, userProfile }: Si
                     </div>
                     <span className="text-[10px] font-bold">Setores</span>
                 </button>
-                <button onClick={() => setActiveTab('relatorios')} className={`flex flex-col items-center gap-1 transition-colors ${activeTab === 'relatorios' ? 'text-brand-primary' : 'text-gray-400'}`}>
-                    <FileText size={24} className={activeTab === 'relatorios' ? 'text-brand-accent' : ''} />
-                    <span className="text-[10px] font-bold">Relatórios</span>
+                <button onClick={() => setActiveTab('previsao' as any)} className={`flex flex-col items-center gap-1 transition-colors ${activeTab === ('previsao' as any) ? 'text-brand-primary' : 'text-gray-400'}`}>
+                    <CloudSun size={24} className={activeTab === ('previsao' as any) ? 'text-brand-accent' : ''} />
+                    <span className="text-[10px] font-bold">Clima</span>
                 </button>
             </nav>
         </>
