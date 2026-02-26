@@ -61,7 +61,7 @@ export function Sidebar({ activeTab, setActiveTab, onNavigate, userProfile }: Si
                         onClick={() => setActiveTab('relatorios')}
                         className={`w-full flex items-center justify-between px-4 py-3.5 font-bold text-sm rounded-xl transition-all ${activeTab === 'relatorios' ? 'bg-brand-primary text-white shadow-md shadow-brand-primary/20 translate-x-1' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}`}
                     >
-                        <div className="flex items-center gap-3"><PieChart size={20} className={activeTab === 'relatorios' ? 'text-brand-accent' : 'text-gray-400'} /> Relatórios C-Level</div>
+                        <div className="flex items-center gap-3"><PieChart size={20} className={activeTab === 'relatorios' ? 'text-brand-accent' : 'text-gray-400'} /> Relatórios</div>
                         {activeTab === 'relatorios' && <ChevronRight size={16} className="text-white/70" />}
                     </button>
                 </nav>
