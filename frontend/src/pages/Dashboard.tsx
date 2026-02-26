@@ -6,6 +6,7 @@ import { SystemMetricsSidebar } from '../components/dashboard/SystemMetricsSideb
 import { FarmMap } from '../components/dashboard/FarmMap';
 import { SectorsGrid } from '../components/dashboard/SectorsGrid';
 import { WeatherPage } from './WeatherPage';
+import { ReportsPage } from './ReportsPage';
 import ChatBot from '../components/dashboard/ChatBot';
 import type { Zone } from '../types';
 import { api, authInfo } from '../lib/api';
@@ -15,7 +16,7 @@ interface DashboardProps {
 }
 
 export function Dashboard({ onNavigate }: DashboardProps) {
-    const [activeTab, setActiveTab] = useState<'visao-geral' | 'mapa-interativo' | 'setores' | 'previsao'>('visao-geral');
+    const [activeTab, setActiveTab] = useState<'visao-geral' | 'mapa-interativo' | 'setores' | 'previsao' | 'relatorios'>('visao-geral');
     const [isEditMode, setIsEditMode] = useState(false);
     const [userProfile, setUserProfile] = useState<any>(null);
 
@@ -329,6 +330,8 @@ export function Dashboard({ onNavigate }: DashboardProps) {
                             </>
                         ) : activeTab === 'previsao' ? (
                             <WeatherPage lat={mapCenter[0]} lng={mapCenter[1]} />
+                        ) : activeTab === 'relatorios' ? (
+                            <ReportsPage />
                         ) : (
                             <SectorsGrid
                                 zones={zones}

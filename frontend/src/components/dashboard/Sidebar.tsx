@@ -5,12 +5,13 @@ import {
     LogOut,
     LayoutDashboard,
     ChevronRight,
-    CloudSun
+    CloudSun,
+    PieChart
 } from 'lucide-react';
 
 interface SidebarProps {
-    activeTab: 'visao-geral' | 'mapa-interativo' | 'setores' | 'previsao';
-    setActiveTab: (tab: 'visao-geral' | 'mapa-interativo' | 'setores' | 'previsao') => void;
+    activeTab: 'visao-geral' | 'mapa-interativo' | 'setores' | 'previsao' | 'relatorios';
+    setActiveTab: (tab: 'visao-geral' | 'mapa-interativo' | 'setores' | 'previsao' | 'relatorios') => void;
     onNavigate: (view: 'landing' | 'login' | 'register' | 'dashboard') => void;
     userProfile?: any;
 }
@@ -55,6 +56,13 @@ export function Sidebar({ activeTab, setActiveTab, onNavigate, userProfile }: Si
                     >
                         <div className="flex items-center gap-3"><CloudSun size={20} className={activeTab === 'previsao' ? 'text-brand-accent' : 'text-gray-400'} /> Previsão Tempo</div>
                         {activeTab === 'previsao' && <ChevronRight size={16} className="text-white/70" />}
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('relatorios')}
+                        className={`w-full flex items-center justify-between px-4 py-3.5 font-bold text-sm rounded-xl transition-all ${activeTab === 'relatorios' ? 'bg-brand-primary text-white shadow-md shadow-brand-primary/20 translate-x-1' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}`}
+                    >
+                        <div className="flex items-center gap-3"><PieChart size={20} className={activeTab === 'relatorios' ? 'text-brand-accent' : 'text-gray-400'} /> Relatórios C-Level</div>
+                        {activeTab === 'relatorios' && <ChevronRight size={16} className="text-white/70" />}
                     </button>
                 </nav>
 
@@ -107,6 +115,10 @@ export function Sidebar({ activeTab, setActiveTab, onNavigate, userProfile }: Si
                 <button onClick={() => setActiveTab('previsao')} className={`flex flex-col items-center gap-1 transition-colors ${activeTab === 'previsao' ? 'text-brand-primary' : 'text-gray-400'}`}>
                     <CloudSun size={24} className={activeTab === 'previsao' ? 'text-brand-accent' : ''} />
                     <span className="text-[10px] font-bold">Clima</span>
+                </button>
+                <button onClick={() => setActiveTab('relatorios')} className={`flex flex-col items-center gap-1 transition-colors ${activeTab === 'relatorios' ? 'text-brand-primary' : 'text-gray-400'}`}>
+                    <PieChart size={24} className={activeTab === 'relatorios' ? 'text-brand-accent' : ''} />
+                    <span className="text-[10px] font-bold">Relatório</span>
                 </button>
             </nav>
         </>
