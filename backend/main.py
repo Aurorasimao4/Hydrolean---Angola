@@ -94,6 +94,7 @@ class ZoneCreate(BaseModel):
     lastUpdate: Optional[str] = "Agora"
     aiMode: Optional[bool] = False
     pumpOn: Optional[bool] = False
+    level: Optional[int] = None
 
 @app.put("/fazenda/polygon")
 async def update_polygon(
@@ -148,7 +149,8 @@ async def create_zone(
         signal=zone.signal,
         lastUpdate=zone.lastUpdate,
         aiMode=zone.aiMode,
-        pumpOn=zone.pumpOn
+        pumpOn=zone.pumpOn,
+        level=zone.level
     )
     db.add(nova_zone)
     db.commit()
@@ -180,6 +182,7 @@ async def update_zone(
     zone.lastUpdate = zone_data.lastUpdate
     zone.aiMode = zone_data.aiMode
     zone.pumpOn = zone_data.pumpOn
+    zone.level = zone_data.level
 
     db.commit()
     db.refresh(zone)

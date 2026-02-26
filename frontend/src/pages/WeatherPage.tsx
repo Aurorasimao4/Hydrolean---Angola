@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { CloudSun, CloudRain, Thermometer, Wind, Droplets, Calendar, Loader2, RefreshCw, Navigation } from 'lucide-react';
+import { CloudSun, CloudRain, Wind, Droplets, Calendar, Loader2, RefreshCw, Navigation } from 'lucide-react';
 import { api } from '../lib/api';
 
 interface WeatherPageProps {
@@ -91,7 +91,7 @@ export function WeatherPage({ lat, lng }: WeatherPageProps) {
                         Última atualização: {new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                     </p>
                 </div>
-                <button 
+                <button
                     onClick={fetchWeather}
                     className="bg-white/50 hover:bg-white/80 backdrop-blur-md text-gray-700 p-4 rounded-2xl transition-all border border-white/50 shadow-sm group"
                     disabled={refreshing}
@@ -104,7 +104,7 @@ export function WeatherPage({ lat, lng }: WeatherPageProps) {
                 {/* Card Principal - Agora - Glassmorphism Premium */}
                 <div className="lg:col-span-2 bg-gradient-to-br from-brand-primary/90 to-brand-secondary/90 backdrop-blur-lg p-8 rounded-[2.5rem] text-white shadow-2xl shadow-brand-primary/20 relative overflow-hidden flex flex-col justify-between min-h-[350px] border border-white/20">
                     <div className="absolute top-0 right-0 w-80 h-80 bg-white/10 rounded-full blur-3xl -mr-40 -mt-40"></div>
-                    
+
                     <div className="relative z-10">
                         <div className="flex justify-between items-start">
                             <div>
@@ -179,7 +179,7 @@ export function WeatherPage({ lat, lng }: WeatherPageProps) {
                         </div>
                     </div>
 
-                    <button 
+                    <button
                         onClick={handleFullAnalysis}
                         disabled={analyzing}
                         className="mt-8 w-full py-4 bg-brand-primary hover:bg-brand-secondary transition-all rounded-2xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-brand-primary/20 group disabled:opacity-50"
@@ -194,7 +194,7 @@ export function WeatherPage({ lat, lng }: WeatherPageProps) {
             {showAnalysis && analysis && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-8 bg-brand-dark/40 backdrop-blur-sm animate-in fade-in duration-300">
                     <div className="bg-white/90 backdrop-blur-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-[3rem] shadow-2xl border border-white/50 p-8 md:p-12 relative animate-in zoom-in-95 duration-300">
-                        <button 
+                        <button
                             onClick={() => setShowAnalysis(false)}
                             className="absolute top-8 right-8 p-3 hover:bg-gray-100 rounded-2xl transition-colors text-gray-400 hover:text-gray-900"
                         >
@@ -243,7 +243,7 @@ export function WeatherPage({ lat, lng }: WeatherPageProps) {
 
                         <div className="mt-12 pt-8 border-t border-gray-100 flex flex-col md:flex-row justify-between items-center gap-6">
                             <p className="text-gray-400 text-sm font-medium">Esta análise utiliza modelos climáticos e agronómicos de precisão.</p>
-                            <button 
+                            <button
                                 onClick={() => setShowAnalysis(false)}
                                 className="px-10 py-4 bg-brand-dark text-white rounded-2xl font-bold hover:bg-black transition-all shadow-xl shadow-brand-dark/20"
                             >
@@ -267,7 +267,7 @@ export function WeatherPage({ lat, lng }: WeatherPageProps) {
                             <span className="text-gray-500 font-bold text-xs uppercase tracking-widest mb-4">
                                 {new Date(dia).toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric' })}
                             </span>
-                            
+
                             <div className="flex items-center justify-between mb-6">
                                 <div className="flex items-center gap-3">
                                     {daily.precipitacao_total[idx] > 5 ? <CloudRain className="text-brand-primary" size={32} /> : <CloudSun className="text-orange-400" size={32} />}

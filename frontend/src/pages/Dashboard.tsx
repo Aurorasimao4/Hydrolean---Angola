@@ -254,7 +254,8 @@ export function Dashboard({ onNavigate }: DashboardProps) {
             signal: 'ND',
             lastUpdate: 'Agora',
             aiMode: false,
-            pumpOn: false
+            pumpOn: false,
+            level: type === 'tank' ? Math.floor(Math.random() * 101) : undefined
         };
         try {
             const created = await api.createZone(payload);
